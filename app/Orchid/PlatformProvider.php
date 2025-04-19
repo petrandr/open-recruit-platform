@@ -23,7 +23,7 @@ class PlatformProvider extends OrchidServiceProvider
     {
         parent::boot($dashboard);
 
-        // ...
+//        $dashboard->registerResource('scripts', asset('js/app.js'));
     }
 
     /**
@@ -34,6 +34,20 @@ class PlatformProvider extends OrchidServiceProvider
     public function menu(): array
     {
         return [
+            Menu::make(__('Jobs'))
+                ->icon('bs.briefcase')
+                ->route('platform.jobs')
+                ->permission('platform.jobs')
+                ->title(__('Recruitment')),
+            Menu::make(__('Candidates'))
+                ->icon('bs.person-lines-fill')
+                ->route('platform.candidates')
+                ->permission('platform.candidates'),
+            Menu::make(__('Applications'))
+                ->icon('bs.file-earmark-text')
+                ->route('platform.applications')
+                ->permission('platform.applications'),
+
             Menu::make('Get Started')
                 ->icon('bs.book')
                 ->title('Navigation')
@@ -103,6 +117,10 @@ class PlatformProvider extends OrchidServiceProvider
             ItemPermission::group(__('System'))
                 ->addPermission('platform.systems.roles', __('Roles'))
                 ->addPermission('platform.systems.users', __('Users')),
+            ItemPermission::group(__('Recruitment'))
+                ->addPermission('platform.jobs', __('Jobs'))
+                ->addPermission('platform.candidates', __('Candidates'))
+                ->addPermission('platform.applications', __('Applications')),
         ];
     }
 }

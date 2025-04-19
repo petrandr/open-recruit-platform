@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Laravel\Scout\Searchable;
 use Orchid\Filters\Types\Like;
 use Orchid\Filters\Types\Where;
 use Orchid\Filters\Types\WhereDateStartEnd;
@@ -9,6 +10,8 @@ use Orchid\Platform\Models\User as Authenticatable;
 
 class User extends Authenticatable
 {
+//    use Searchable;
+
     /**
      * The attributes that are mass assignable.
      *
@@ -66,4 +69,20 @@ class User extends Authenticatable
         'updated_at',
         'created_at',
     ];
+
+    /**
+     * Data to index for Scout.
+     */
+    public function toSearchableArray(): array
+    {
+        return $this->only(['id', 'name', 'email']);
+    }
+
+    /**
+     * Return the Orchid presenter instance.
+     */
+    public function presenter()
+    {
+        return new \App\Orchid\Presenters\UserPresenter($this);
+    }
 }

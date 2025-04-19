@@ -1,0 +1,68 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Orchid\Layouts\JobListing;
+
+use Orchid\Screen\Layouts\Rows;
+use Orchid\Screen\Fields\Input;
+use Orchid\Screen\Fields\Select;
+use Orchid\Screen\Fields\DateTimer;
+
+class JobListingGeneralLayout extends Rows
+{
+    /**
+     * Define the fields for general job information.
+     *
+     * @return \Orchid\Screen\Field[]
+     */
+    public function fields(): array
+    {
+        return [
+            Input::make('job.title')
+                ->type('text')
+                ->required()
+                ->title(__('Title'))
+                ->placeholder(__('Enter job title')),
+
+            Select::make('job.job_type')
+                ->options([
+                    'Full-Time' => 'Full-Time',
+                    'Part-Time' => 'Part-Time',
+                    'Contract'  => 'Contract',
+                ])
+                ->required()
+                ->title(__('Job Type')),
+
+            Select::make('job.workplace')
+                ->options([
+                    'On-Site' => 'On-Site',
+                    'Hybrid'  => 'Hybrid',
+                    'Remote'  => 'Remote',
+                ])
+                ->multiple()
+                ->required()
+                ->title(__('Workplace')),
+
+            Input::make('job.location')
+                ->type('text')
+                ->required()
+                ->title(__('Location'))
+                ->placeholder(__('City, Country')),
+
+            DateTimer::make('job.date_opened')
+                ->title(__('Date Opened'))
+                ->enableTime(false),
+
+            Select::make('job.status')
+                ->options([
+                    'draft'    => __('Draft'),
+                    'active'   => __('Active'),
+                    'inactive' => __('Inactive'),
+                    'disable'  => __('Disabled'),
+                ])
+                ->required()
+                ->title(__('Status')),
+        ];
+    }
+}

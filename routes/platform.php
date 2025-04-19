@@ -17,8 +17,13 @@ use App\Orchid\Screens\Role\RoleListScreen;
 use App\Orchid\Screens\User\UserEditScreen;
 use App\Orchid\Screens\User\UserListScreen;
 use App\Orchid\Screens\User\UserProfileScreen;
+use App\Orchid\Screens\Application\ApplicationListScreen;
+use App\Orchid\Screens\JobListing\JobListingListScreen;
 use Illuminate\Support\Facades\Route;
 use Tabuna\Breadcrumbs\Trail;
+use App\Orchid\Screens\JobListing\JobListingEditScreen;
+use App\Models\JobListing;
+use App\Orchid\Screens\Candidate\CandidateListScreen;
 
 /*
 |--------------------------------------------------------------------------
@@ -83,6 +88,39 @@ Route::screen('roles', RoleListScreen::class)
     ->breadcrumbs(fn (Trail $trail) => $trail
         ->parent('platform.index')
         ->push(__('Roles'), route('platform.systems.roles')));
+// Platform > Recruitment > Jobs > Create
+Route::screen('jobs/create', JobListingEditScreen::class)
+    ->name('platform.jobs.create')
+    ->breadcrumbs(fn (Trail $trail) => $trail
+        ->parent('platform.jobs')
+        ->push(__('Create'), route('platform.jobs.create')));
+// Platform > Recruitment > Jobs > Edit
+Route::screen('jobs/{job}/edit', JobListingEditScreen::class)
+    ->name('platform.jobs.edit')
+    ->breadcrumbs(fn (Trail $trail, JobListing $job) => $trail
+        ->parent('platform.jobs')
+        ->push($job->title, route('platform.jobs.edit', $job)));
+// Platform > Recruitment > Jobs
+Route::screen('jobs', JobListingListScreen::class)
+    ->name('platform.jobs')
+    ->breadcrumbs(fn (Trail $trail) => $trail
+        ->parent('platform.index')
+        ->push(__('Jobs'), route('platform.jobs')));
+// Platform > Recruitment > Candidates
+Route::screen('candidates', CandidateListScreen::class)
+    ->name('platform.candidates')
+    ->breadcrumbs(fn (Trail $trail) => $trail
+        ->parent('platform.index')
+        ->push(__('Candidates'), route('platform.candidates')));
+// Platform > Recruitment > Applications
+Route::screen('applications', ApplicationListScreen::class)
+    ->name('platform.applications')
+    ->breadcrumbs(fn (Trail $trail) => $trail
+        ->parent('platform.index')
+        ->push(__('Applications'), route('platform.applications')));
+// Platform > Recruitment > Application Details (AJAX)
+Route::get('applications/{application}/details', [\App\Http\Controllers\ApplicationDetailController::class, 'show'])
+    ->name('platform.applications.details');
 
 // Example...
 Route::screen('example', ExampleScreen::class)

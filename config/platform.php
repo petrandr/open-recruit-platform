@@ -126,7 +126,9 @@ return [
      */
 
     'resource' => [
-        'stylesheets' => [],
+        'stylesheets' => [
+            '/css/style.css',
+        ],
         'scripts'     => [],
     ],
 
@@ -244,7 +246,7 @@ return [
      */
 
     'search' => [
-        // \App\Models\User::class
+//         \App\Models\User::class
     ],
 
     /*
@@ -293,7 +295,7 @@ return [
     |
     */
 
-    'workspace' => 'platform::workspace.compact',
+    'workspace' => 'platform::workspace.full',
 
     /*
     |--------------------------------------------------------------------------

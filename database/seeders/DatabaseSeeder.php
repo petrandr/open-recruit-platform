@@ -15,9 +15,14 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        // Create a test user without syncing to search to avoid Scout errors
+        User::withoutSyncingToSearch(function () {
+            User::factory()->create([
+                'name' => 'Test User',
+                'email' => 'test@example.com',
+            ]);
+        });
+        // Seed job posting data
+        $this->call(JobPostSeeder::class);
     }
 }

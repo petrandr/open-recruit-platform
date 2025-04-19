@@ -1,0 +1,21 @@
+/* Custom overrides */
+/* Filters dropdown: wider */
+/*[data-controller="filter"] .dropdown-menu {*/
+/*    min-width: 400px !important;*/
+/*}*/
+/* Application list: larger status badges */
+.status-badge {
+    font-size: 0.85em;
+    padding: 0.4em 0.75em;
+}
+/* Wider offcanvas for application details */
+#applicationOffcanvas.offcanvas-end {
+    /* Increase width and cap at 90% viewport width */
+    width: 600px !important;
+    max-width: 90% !important;
+}
+/* Space out fields in offcanvas details */
+#applicationOffcanvas .offcanvas-body dl.row dt,
+#applicationOffcanvas .offcanvas-body dl.row dd {
+    margin-bottom: 0.75rem;
+}
