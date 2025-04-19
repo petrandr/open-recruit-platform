@@ -9,6 +9,7 @@ use Orchid\Screen\TD;
 use App\Models\JobListing;
 use Orchid\Screen\Actions\Button;
 use Orchid\Screen\Actions\Link;
+use Orchid\Screen\Actions\DropDown;
 use Orchid\Screen\Components\Cells\DateTimeSplit;
 
 class JobListingListLayout extends Table
@@ -57,10 +58,18 @@ class JobListingListLayout extends Table
             TD::make(__('Actions'))
                 ->align(TD::ALIGN_CENTER)
                 ->width('100px')
-                ->render(fn (JobListing $job) => Button::make(__('Delete'))
-                    ->icon('bs.trash3')
-                    ->confirm(__('Are you sure you want to delete this job listing?'))
-                    ->method('removeJobListing', ['id' => $job->id])
+                ->render(fn (JobListing $job) => DropDown::make()
+                    ->icon('bs.three-dots-vertical')
+                    ->list([
+                        Link::make(__('Edit'))
+                            ->icon('bs.pencil')
+                            ->route('platform.jobs.edit', $job->id),
+
+                        Button::make(__('Delete'))
+                            ->icon('bs.trash3')
+                            ->confirm(__('Are you sure you want to delete this job listing?'))
+                            ->method('removeJobListing', ['id' => $job->id]),
+                    ])
                 ),
         ];
     }

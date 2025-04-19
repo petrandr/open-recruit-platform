@@ -39,7 +39,7 @@ class ActivityLogListLayout extends Table
 
             TD::make('event', __('Event'))
                 ->filter(TD::FILTER_TEXT)
-                ->render(fn(Activity $activity) => ucfirst($activity->event)),
+                ->render(fn(Activity $activity) => $activity->event ? ucfirst($activity->event) : '-'),
 
             TD::make('causer', __('Causer'))
                 ->render(fn(Activity $activity) => optional($activity->causer)->name ?? '-'),

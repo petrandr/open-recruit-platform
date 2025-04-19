@@ -3,9 +3,9 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Event;
 use Spatie\Activitylog\Models\Activity;
-use function Spatie\Activitylog\activity;
+// Activity helper is available in the global namespace via spatie/laravel-activitylog; no import needed
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -22,36 +22,40 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Model::created(function (Model $model) {
-            if ($model instanceof Activity) {
+        // Listen to all Eloquent model create/update/delete events
+        Event::listen('eloquent.created: *', function (string $eventName, array $data) {
+            $model = $data[0] ?? null;
+            if (! $model || $model instanceof Activity) {
                 return;
             }
-            activity()
+            \activity()
                 ->performedOn($model)
                 ->causedBy(auth()->user())
                 ->withProperties(['attributes' => $model->getAttributes()])
                 ->log('created');
         });
 
-        Model::updated(function (Model $model) {
-            if ($model instanceof Activity) {
+        Event::listen('eloquent.updated: *', function (string $eventName, array $data) {
+            $model = $data[0] ?? null;
+            if (! $model || $model instanceof Activity) {
                 return;
             }
-            activity()
+            \activity()
                 ->performedOn($model)
                 ->causedBy(auth()->user())
                 ->withProperties([
                     'attributes' => $model->getAttributes(),
-                    'old' => $model->getOriginal(),
+                    'old'        => $model->getOriginal(),
                 ])
                 ->log('updated');
         });
 
-        Model::deleted(function (Model $model) {
-            if ($model instanceof Activity) {
+        Event::listen('eloquent.deleted: *', function (string $eventName, array $data) {
+            $model = $data[0] ?? null;
+            if (! $model || $model instanceof Activity) {
                 return;
             }
-            activity()
+            \activity()
                 ->performedOn($model)
                 ->causedBy(auth()->user())
                 ->withProperties(['attributes' => $model->getAttributes()])
