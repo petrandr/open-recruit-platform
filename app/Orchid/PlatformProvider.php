@@ -92,6 +92,10 @@ class PlatformProvider extends OrchidServiceProvider
                 ->permission('platform.systems.roles')
                 ->divider(),
 
+            Menu::make(__('Activity Logs'))
+                ->icon('bs.clock-history')
+                ->route('platform.activity.logs'),
+
             Menu::make('Documentation')
                 ->title('Docs')
                 ->icon('bs.box-arrow-up-right')
@@ -116,7 +120,8 @@ class PlatformProvider extends OrchidServiceProvider
         return [
             ItemPermission::group(__('System'))
                 ->addPermission('platform.systems.roles', __('Roles'))
-                ->addPermission('platform.systems.users', __('Users')),
+                ->addPermission('platform.systems.users', __('Users'))
+                ->addPermission('platform.activity-logs', __('Activity Logs')),
             ItemPermission::group(__('Recruitment'))
                 ->addPermission('platform.jobs', __('Jobs'))
                 ->addPermission('platform.candidates', __('Candidates'))

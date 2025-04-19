@@ -24,6 +24,8 @@ use Tabuna\Breadcrumbs\Trail;
 use App\Orchid\Screens\JobListing\JobListingEditScreen;
 use App\Models\JobListing;
 use App\Orchid\Screens\Candidate\CandidateListScreen;
+use App\Orchid\Screens\ActivityLog\ActivityLogListScreen;
+use App\Orchid\Screens\ActivityLog\ActivityLogViewScreen;
 
 /*
 |--------------------------------------------------------------------------
@@ -121,6 +123,18 @@ Route::screen('applications', ApplicationListScreen::class)
 // Platform > Recruitment > Application Details (AJAX)
 Route::get('applications/{application}/details', [\App\Http\Controllers\ApplicationDetailController::class, 'show'])
     ->name('platform.applications.details');
+// Platform > System > Activity Logs
+Route::screen('activity-logs', ActivityLogListScreen::class)
+    ->name('platform.activity.logs')
+    ->breadcrumbs(fn (Trail $trail) => $trail
+        ->parent('platform.index')
+        ->push(__('Activity Logs'), route('platform.activity.logs')));
+// Platform > System > Activity Log Detail
+Route::screen('activity-logs/{id}', ActivityLogViewScreen::class)
+    ->name('platform.activity.log')
+    ->breadcrumbs(fn (Trail $trail, $id) => $trail
+        ->parent('platform.activity.logs')
+        ->push("#{$id}", route('platform.activity.log', $id)));
 
 // Example...
 Route::screen('example', ExampleScreen::class)
