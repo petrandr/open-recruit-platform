@@ -12,7 +12,18 @@
     <dt class="col-sm-4">{{ __('Desired Salary') }}</dt>
     <dd class="col-sm-8">
       @if($application->desired_salary !== null)
-        {{ number_format((float)$application->desired_salary, 2, ',', ' ') }} {{ $application->salary_currency }}
+        @php
+          $amt = (float)$application->desired_salary;
+          $formatted = number_format($amt, 2, ',', '.');
+          $code = strtoupper($application->salary_currency ?? '');
+          $symbol = match ($code) {
+              'EUR' => '€',
+              'USD' => '$',
+              'GBP' => '£',
+              default => $code,
+          };
+        @endphp
+        {{ $symbol . $formatted }}
       @else
         -
       @endif

@@ -58,11 +58,31 @@ class ApplicationListLayout extends Table
                         return '-';
                     }
                     $amount = (float)$application->desired_salary;
-                    $formatted = number_format($amount, 2, ',', ' ');
-                    $currency = $application->salary_currency ?? '';
-                    return $currency
-                        ? sprintf('%s %s', $formatted, $currency)
+                    // Format with dot as thousands separator and comma as decimal
+                    $formatted = number_format($amount, 2, ',', '.');
+                    $code = strtoupper($application->salary_currency ?? '');
+                    // Map currency codes to symbols
+                    $symbol = match ($code) {
+                        'EUR' => '€',
+                        'USD' => '$',
+                        'GBP' => '£',
+                        default => $code,
+                    };
+                    return $symbol
+                        ? $symbol . $formatted
                         : $formatted;
+                }),
+            // CV preview trigger
+            TD::make('cv', __('CV'))
+                ->align(TD::ALIGN_CENTER)
+                ->render(function (JobApplication $application) {
+                    // Use Orchid Link for icon trigger
+                    return Link::make('')
+                        ->icon('bs.file-earmark-text')
+                        ->class('application-cv-trigger btn btn-sm btn-outline-primary')
+                        ->set('data-bs-toggle', 'modal')
+                        ->set('data-bs-target', '#applicationCvModal')
+                        ->set('data-application-id', $application->id);
                 }),
 
             TD::make('status', __('Status'))

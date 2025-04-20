@@ -121,11 +121,22 @@ class ApplicationViewScreen extends Screen
                 return "<span class='badge bg-{$color} status-badge'>" . ucfirst($status) . "</span>";
             }),
             Sight::make('notice_period', __('Notice Period')),
-            Sight::make('desired_salary', __('Desired Salary'))->render(fn () =>
-                $this->application->desired_salary
-                    ? number_format((float)$this->application->desired_salary, 2, ',', ' ') . ' ' . $this->application->salary_currency
-                    : '-'
-            ),
+            Sight::make('desired_salary', __('Desired Salary'))->render(function () {
+                $value = $this->application->desired_salary;
+                if ($value === null) {
+                    return '-';
+                }
+                $amount = (float)$value;
+                $formatted = number_format($amount, 2, ',', '.');
+                $code = strtoupper($this->application->salary_currency ?? '');
+                $symbol = match ($code) {
+                    'EUR' => '€',
+                    'USD' => '$',
+                    'GBP' => '£',
+                    default => $code,
+                };
+                return $symbol ? $symbol . $formatted : $formatted;
+            }),
             Sight::make('linkedin_profile', __('LinkedIn Profile'))->render(fn () =>
                 $this->application->linkedin_profile
                     ? Link::make($this->application->linkedin_profile)->href($this->application->linkedin_profile)

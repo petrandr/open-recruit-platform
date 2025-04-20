@@ -9,6 +9,7 @@ use App\Orchid\Layouts\Application\ApplicationFiltersLayout;
 use App\Orchid\Layouts\Application\ApplicationListLayout;
 use App\Orchid\Layouts\Application\ApplicationOffcanvasLayout;
 use Illuminate\Http\Request;
+use Orchid\Support\Facades\Layout;
 use Orchid\Screen\Screen;
 use Orchid\Support\Facades\Toast;
 
@@ -77,6 +78,9 @@ class ApplicationListScreen extends Screen
         return [
             ApplicationFiltersLayout::class,
             ApplicationListLayout::class,
+            // Modal for CV preview
+            Layout::view('partials.application-cv-modal'),
+            // Offcanvas summary pane
             ApplicationOffcanvasLayout::class,
         ];
     }

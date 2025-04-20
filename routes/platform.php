@@ -125,6 +125,9 @@ Route::screen('applications', ApplicationListScreen::class)
 // Platform > Recruitment > Application Details (AJAX)
 Route::get('applications/{application}/details', [\App\Http\Controllers\ApplicationDetailController::class, 'show'])
     ->name('platform.applications.details');
+// Platform > Recruitment > Application CV Preview
+Route::get('applications/{application}/cv', [\App\Http\Controllers\ApplicationDetailController::class, 'cv'])
+    ->name('platform.applications.cv');
 // Platform > Recruitment > Screening Questions AJAX search
 Route::get('screening-questions/search', [\App\Http\Controllers\ScreeningQuestionController::class, 'search'])
     ->name('platform.screening-questions.search');
