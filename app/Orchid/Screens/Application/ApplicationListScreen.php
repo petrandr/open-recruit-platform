@@ -77,18 +77,35 @@ class ApplicationListScreen extends Screen
         return [
             ApplicationFiltersLayout::class,
             ApplicationListLayout::class,
-            // Offcanvas layout showing application details
-            \App\Orchid\Layouts\Application\ApplicationOffcanvasLayout::class,
+            ApplicationOffcanvasLayout::class,
         ];
     }
 
     /**
      * Remove an application.
      */
-    public function removeApplication(Request $request): void
+    /**
+     * Anonymize an application (remove personal information).
+     */
+    public function anonymizeApplication(Request $request): void
     {
-        $application = JobApplication::findOrFail($request->get('id'));
-        $application->delete();
-        Toast::info('Application was removed.');
+        $application = JobApplication::with('candidate')->findOrFail($request->get('id'));
+        // Anonymize candidate personal info
+        if ($application->candidate) {
+            // Replace personal info with placeholders
+            $application->candidate->update([
+                'first_name'    => 'Anonymous',
+                'last_name'     => 'Applicant',
+                'email'         => sprintf('anon+%d@example.com', $application->id),
+                'mobile_number' => '0000000000',
+            ]);
+        }
+        // Clear application-specific personal fields
+        $application->update([
+            'linkedin_profile' => '',
+            'github_profile'   => '',
+            'how_heard'        => '',
+        ]);
+        Toast::info('Application personal data was anonymized.');
     }
 }

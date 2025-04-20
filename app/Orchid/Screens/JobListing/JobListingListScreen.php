@@ -22,6 +22,19 @@ class JobListingListScreen extends Screen
     }
 
     /**
+     * Change the status of a job listing.
+     *
+     * @param \Illuminate\Http\Request $request
+     */
+    public function changeJobStatus(Request $request): void
+    {
+        $job    = JobListing::findOrFail($request->get('id'));
+        $status = $request->get('status');
+        $job->update(['status' => $status]);
+        Toast::info(__('Job status changed to :status', ['status' => ucfirst($status)]));
+    }
+
+    /**
      * Screen description displayed under the header.
      */
     public function description(): ?string

@@ -14,6 +14,7 @@ use Orchid\Screen\Actions\Button;
 use Orchid\Screen\Actions\Link;
 use Orchid\Screen\Screen;
 use Orchid\Support\Facades\Layout;
+// use App\Orchid\Layouts\JobListing\JobListingScreeningLayout; // removed repeater dependency
 use Orchid\Support\Facades\Toast;
 
 class JobListingEditScreen extends Screen
@@ -33,6 +34,9 @@ class JobListingEditScreen extends Screen
      */
     public function query(JobListing $job): iterable
     {
+        // Eager load existing screening questions and application count
+        $job->load('screeningQuestions');
+        $job->loadCount('applications');
         return [
             'job' => $job,
         ];
@@ -75,13 +79,10 @@ class JobListingEditScreen extends Screen
             Link::make(__('Jobs List'))
                 ->icon('bs.list')
                 ->route('platform.jobs'),
-            Button::make(__('Save'))
-                ->icon('bs.check-circle')
-                ->method('saveJob'),
             Button::make(__('Remove'))
                 ->icon('bs.trash3')
                 ->method('removeJob')
-                ->canSee($this->job->exists)
+                ->canSee($this->job->exists && $this->job->applications_count === 0)
                 ->confirm(__('Are you sure you want to delete this job position?')),
         ];
     }
@@ -94,17 +95,48 @@ class JobListingEditScreen extends Screen
     public function layout(): iterable
     {
         return [
+            // General job sections first
             Layout::block(JobListingGeneralLayout::class)
                 ->title(__('General Information'))
-                ->description(__('Basic details of the job position.')),
-
+                ->description(__('Basic details of the job position.'))
+                ->commands([
+                    Button::make(__('Save'))
+                        ->icon('bs.check-circle')
+                        ->method('saveJob')
+                        ->canSee($this->job->exists),
+                ]),
             Layout::block(JobListingDescriptionLayout::class)
                 ->title(__('Description'))
-                ->description(__('Overview and headline of the job.')),
-
+                ->description(__('Overview and headline of the job.'))
+                ->commands([
+                    Button::make(__('Save'))
+                        ->icon('bs.check-circle')
+                        ->method('saveJob')
+                        ->canSee($this->job->exists),
+                ]),
             Layout::block(JobListingDetailedLayout::class)
                 ->title(__('Details & Perks'))
-                ->description(__('In-depth responsibilities, requirements, and benefits.')),
+                ->description(__('Responsibilities, requirements, and perks.'))
+                ->commands([
+                    Button::make(__('Save'))
+                        ->icon('bs.check-circle')
+                        ->method('saveJob')
+                        ->canSee($this->job->exists),
+                ]),
+            // Autocomplete datalist for question suggestions
+            Layout::view('partials.screening-questions-datalist'),
+            // Screening questions repeater at bottom
+            Layout::block([
+                Layout::view('partials.job-screening-questions'),
+            ])
+                ->title(__('Screening Questions'))
+                ->description(__('Add or select questions for applicants.'))
+                ->commands([
+                    Button::make(__('Save'))
+                        ->icon('bs.check-circle')
+                        ->method('saveJob')
+                        ->canSee($this->job->exists),
+                ]),
         ];
     }
 
@@ -134,8 +166,42 @@ class JobListingEditScreen extends Screen
         ]);
 
         $job->fill($request->input('job'))->save();
-        Toast::info(__('Job was saved.'));
 
+        // Handle screening questions
+        $screeningData = $request->input('screeningQuestions', []);
+        // Track IDs we processed
+        $processed = [];
+        foreach ($screeningData as $data) {
+            $text = trim($data['question_text'] ?? '');
+            if ($text === '') {
+                continue;
+            }
+            $type = $data['question_type'] ?? 'number';
+            $value = $data['min_value'] ?? null;
+            // Update existing or create new
+            if (!empty($data['id']) && $sq = \App\Models\JobScreeningQuestion::find($data['id'])) {
+                $sq->update([
+                    'question_text' => $text,
+                    'question_type' => $type,
+                    'min_value'     => $value,
+                ]);
+            } else {
+                $sq = $job->screeningQuestions()->create([
+                    'question_text' => $text,
+                    'question_type' => $type,
+                    'min_value'     => $value,
+                ]);
+            }
+            $processed[] = $sq->id;
+        }
+        // Unassign any screening questions not in the processed list
+        if (!empty($processed)) {
+            $job->screeningQuestions()
+                ->whereNotIn('id', $processed)
+                ->update(['job_id' => null]);
+        }
+
+        Toast::info(__('Job was saved.'));
         return redirect()->route('platform.jobs');
     }
 
@@ -148,7 +214,7 @@ class JobListingEditScreen extends Screen
     public function removeJob(JobListing $job)
     {
         if ($job->applications()->exists()) {
-            Toast::warning(__('Cannot delete job with existing applications.')); 
+            Toast::warning(__('Cannot delete job with existing applications.'));
             return redirect()->route('platform.jobs');
         }
 

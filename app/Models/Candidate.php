@@ -50,6 +50,7 @@ class Candidate extends Model
         'first_name',
         'last_name',
         'email',
+        'applications_count', // Allows sorting by number of applications
         'created_at',
         'updated_at',
     ];

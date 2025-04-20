@@ -19,3 +19,9 @@
 #applicationOffcanvas .offcanvas-body dl.row dd {
     margin-bottom: 0.75rem;
 }
+/* Sticky command bar (application view) */
+.command-bar-wrapper {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1020 !important;
+}

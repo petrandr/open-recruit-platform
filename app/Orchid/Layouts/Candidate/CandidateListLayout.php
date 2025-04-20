@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Orchid\Layouts\Candidate;
 
+use Orchid\Screen\Actions\Link;
 use Orchid\Screen\Layouts\Table;
 use Orchid\Screen\TD;
 use App\Models\Candidate;
@@ -42,6 +43,13 @@ class CandidateListLayout extends Table
             TD::make('email', __('Email'))
                 ->sort()
                 ->render(fn (Candidate $candidate) => $candidate->email),
+            // Number of applications per candidate
+            TD::make('applications_count', __('Applications'))
+                ->sort()
+                ->render(function (Candidate $candidate) {
+                    return Link::make((string) $candidate->applications_count)
+                        ->route('platform.applications', ['applicant_id' => $candidate->id]);
+                }),
 
             TD::make('created_at', __('Created'))
                 ->sort()

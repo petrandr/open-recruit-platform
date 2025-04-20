@@ -21,7 +21,8 @@ class ApplicationDetailController extends Controller
             'answers.question',
             'jobListing.screeningQuestions',
         ]);
-        return view('partials.application-details', [
+        // Return a concise summary for the offcanvas
+        return view('partials.application-summary', [
             'application' => $application,
         ]);
     }

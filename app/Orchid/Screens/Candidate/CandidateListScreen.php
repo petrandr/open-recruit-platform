@@ -36,7 +36,11 @@ class CandidateListScreen extends Screen
     public function query(): iterable
     {
         return [
-            'candidates' => Candidate::defaultSort('id', 'desc')->paginate(),
+            // Include application counts for sorting and display; filters needed for sorting
+            'candidates' => Candidate::withCount('applications')
+                ->filters(\App\Orchid\Layouts\Candidate\CandidateFiltersLayout::class)
+                ->defaultSort('id', 'desc')
+                ->paginate(),
         ];
     }
 

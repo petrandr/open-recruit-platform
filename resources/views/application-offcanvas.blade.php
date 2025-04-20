@@ -9,30 +9,45 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-  const rows = document.querySelectorAll('table tbody tr');
+(function() {
+  // Offcanvas elements and URL template
   const offcanvasEl = document.getElementById('applicationOffcanvas');
   const offcanvasBody = offcanvasEl.querySelector('.offcanvas-body');
-  // URL template with placeholder __ID__ to be replaced
-  const urlTemplate = '{{ route('platform.applications.details', ['application' => '__ID__']) }}';
-  rows.forEach((tr) => {
-    tr.style.cursor = 'pointer';
-    tr.addEventListener('click', () => {
-      const idCell = tr.querySelector('td');
-      const id = idCell ? idCell.innerText.trim() : null;
-      if (!id) {
-        return;
-      }
-      const url = urlTemplate.replace('__ID__', id);
-      fetch(url)
-        .then((response) => response.text())
-        .then((html) => {
-          offcanvasBody.innerHTML = html;
-          const off = new window.Bootstrap.Offcanvas(offcanvasEl);
-          off.show();
-        })
-        .catch((err) => console.error('Failed to load application details:', err));
-    });
+  const urlTemplate = '{{ route("platform.applications.details", ['application' => '__ID__']) }}';
+  // Spinner placeholder while loading
+  const spinnerHtml = `
+    <div class="d-flex justify-content-center align-items-center" style="height:100%;">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ __('Loading...') }}</span>
+      </div>
+    </div>
+  `;
+
+  // Delegate clicks on candidate name triggers
+  document.addEventListener('click', function(event) {
+    const trigger = event.target.closest('.application-offcanvas-trigger');
+    if (!trigger) {
+      return;
+    }
+    const id = trigger.getAttribute('data-id');
+    if (!id) {
+      return;
+    }
+    const url = urlTemplate.replace('__ID__', id);
+    // Show offcanvas with spinner
+    const off = new window.Bootstrap.Offcanvas(offcanvasEl);
+    off.show();
+    offcanvasBody.innerHTML = spinnerHtml;
+    // Load content
+    fetch(url)
+      .then(function(response) { return response.text(); })
+      .then(function(html) {
+        offcanvasBody.innerHTML = html;
+      })
+      .catch(function(err) {
+        console.error('Failed to load application details:', err);
+        offcanvasBody.innerHTML = '<p class="text-danger">{{ __('Failed to load details.') }}</p>';
+      });
   });
-});
+})();
 </script>

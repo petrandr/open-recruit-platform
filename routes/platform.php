@@ -18,6 +18,8 @@ use App\Orchid\Screens\User\UserEditScreen;
 use App\Orchid\Screens\User\UserListScreen;
 use App\Orchid\Screens\User\UserProfileScreen;
 use App\Orchid\Screens\Application\ApplicationListScreen;
+use App\Orchid\Screens\Application\ApplicationViewScreen;
+use App\Models\JobApplication;
 use App\Orchid\Screens\JobListing\JobListingListScreen;
 use Illuminate\Support\Facades\Route;
 use Tabuna\Breadcrumbs\Trail;
@@ -123,6 +125,16 @@ Route::screen('applications', ApplicationListScreen::class)
 // Platform > Recruitment > Application Details (AJAX)
 Route::get('applications/{application}/details', [\App\Http\Controllers\ApplicationDetailController::class, 'show'])
     ->name('platform.applications.details');
+// Platform > Recruitment > Screening Questions AJAX search
+Route::get('screening-questions/search', [\App\Http\Controllers\ScreeningQuestionController::class, 'search'])
+    ->name('platform.screening-questions.search');
+
+// Platform > Recruitment > Application Full View
+Route::screen('applications/{application}', ApplicationViewScreen::class)
+    ->name('platform.applications.view')
+    ->breadcrumbs(fn (Trail $trail, JobApplication $application) => $trail
+        ->parent('platform.applications')
+        ->push("#{$application->id}", route('platform.applications.view', $application)));
 // Platform > System > Activity Logs
 Route::screen('activity-logs', ActivityLogListScreen::class)
     ->name('platform.activity.logs')

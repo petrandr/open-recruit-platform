@@ -9,6 +9,7 @@ You are developing a Recruitment Application using Laravel and Orchid for the ad
 - **Coding Standards:** Adhere strictly to PSR standards and Laravel conventions.
 - **Admin UI:** Use Orchid Screens and Layouts for admin interfaces, following Orchid best practices (screens, layouts, fields, actions).
 - **Migrations & Models:** Ensure database interactions align with existing migrations and relationships.
+- **External Packages:** You are not allowed to modify any file within the vendors dir.
 
 ### Application Features:
 - **Job Management:**
