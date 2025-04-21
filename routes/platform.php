@@ -24,6 +24,7 @@ use App\Orchid\Screens\JobListing\JobListingListScreen;
 use Illuminate\Support\Facades\Route;
 use Tabuna\Breadcrumbs\Trail;
 use App\Orchid\Screens\JobListing\JobListingEditScreen;
+use App\Orchid\Screens\JobListing\JobListingViewScreen;
 use App\Models\JobListing;
 use App\Orchid\Screens\Candidate\CandidateListScreen;
 use App\Orchid\Screens\ActivityLog\ActivityLogListScreen;
@@ -104,6 +105,12 @@ Route::screen('jobs/{job}/edit', JobListingEditScreen::class)
     ->breadcrumbs(fn (Trail $trail, JobListing $job) => $trail
         ->parent('platform.jobs')
         ->push($job->title, route('platform.jobs.edit', $job)));
+// Platform > Recruitment > Jobs > View
+Route::screen('jobs/{job}', JobListingViewScreen::class)
+    ->name('platform.jobs.view')
+    ->breadcrumbs(fn (Trail $trail, JobListing $job) => $trail
+        ->parent('platform.jobs')
+        ->push($job->title, route('platform.jobs.view', $job)));
 // Platform > Recruitment > Jobs
 Route::screen('jobs', JobListingListScreen::class)
     ->name('platform.jobs')

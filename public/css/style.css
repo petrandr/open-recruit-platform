@@ -25,3 +25,13 @@
     top: 0 !important;
     z-index: 1020 !important;
 }
+
+/* Only target your Screening Questions legend */
+.screening-questions dt {
+    width: 60% !important;   /* make your “questions” column wider
+    */
+}
+.screening-questions dd {
+    width: 40% !important;   /* make your “answers” column narrower
+    */
+}

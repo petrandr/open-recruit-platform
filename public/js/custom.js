@@ -12,6 +12,7 @@
     bindCommentEnter();
     bindCvModal();
     bindOffcanvas();
+    bindScreeningQuestions();
   }
 
   // Bind Enter key to submit comments
@@ -97,6 +98,55 @@
         .then(r => r.text())
         .then(html => { console.log(body); body.innerHTML = html; })
         .catch(err => { body.innerHTML = '<p class="text-danger">Failed to load details.</p>'; });
+    });
+  }
+  
+  // Bind dynamic screening questions add/remove/type logic
+  function bindScreeningQuestions() {
+    const container = document.getElementById('screening-questions-container');
+    const addBtn = document.getElementById('add-screening-question');
+    if (!container || !addBtn || container._screeningBound) return;
+    container._screeningBound = true;
+    // Determine next index
+    const items = container.querySelectorAll('.screening-item');
+    let nextIndex = items.length ? (parseInt(items[items.length - 1].dataset.index) + 1) : 0;
+    // Add new question
+    addBtn.addEventListener('click', function() {
+      const idx = nextIndex++;
+      const template = document.getElementById('screening-question-template');
+      let html = template.innerHTML.replace(/__INDEX__/g, idx);
+      const wrapper = document.createElement('div');
+      wrapper.innerHTML = html;
+      // Append new screening item
+      container.appendChild(wrapper.firstElementChild);
+    });
+    // Remove question
+    container.addEventListener('click', function(e) {
+      if (e.target.matches('.remove-screening-question')) {
+        e.preventDefault();
+        const row = e.target.closest('.screening-item');
+        if (row) row.remove();
+      }
+    });
+    // Toggle min_value fields by type
+    container.addEventListener('change', function(e) {
+      if (e.target.matches('.question-type')) {
+        const row = e.target.closest('.screening-item');
+        const type = e.target.value;
+        const numberField = row.querySelector('.number-field');
+        const booleanField = row.querySelector('.boolean-field');
+        if (type === 'number') {
+          numberField.disabled = false;
+          numberField.style.display = '';
+          booleanField.disabled = true;
+          booleanField.style.display = 'none';
+        } else {
+          numberField.disabled = true;
+          numberField.style.display = 'none';
+          booleanField.disabled = false;
+          booleanField.style.display = '';
+        }
+      }
     });
   }
 

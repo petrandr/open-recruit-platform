@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Event;
 use Spatie\Activitylog\Models\Activity;
@@ -22,6 +23,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if (app()->environment('local')) {
+            Mail::alwaysTo(env('MAIL_DEV_ADDRESS'));
+        }
+
         // Listen to all Eloquent model create/update/delete events
         Event::listen('eloquent.created: *', function (string $eventName, array $data) {
             $model = $data[0] ?? null;

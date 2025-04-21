@@ -35,7 +35,10 @@ class JobListingListLayout extends Table
 
             TD::make('title', __('Title'))
                 ->sort()
-                ->render(fn(JobListing $job) => $job->title),
+                ->render(function (JobListing $job) {
+                    return Link::make($job->title)
+                        ->route('platform.jobs.view', $job->id);
+                }),
             TD::make('applications', __('Applications'))
                 ->render(fn(JobListing $job) => Link::make((string)$job->applications_count)
                     ->route('platform.applications', ['job_id' => $job->id])

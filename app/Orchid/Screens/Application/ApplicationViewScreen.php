@@ -199,8 +199,7 @@ class ApplicationViewScreen extends Screen
                 array_filter([
                     $application_details,
                     !empty($questions)
-                        ? Layout::legend('application', $questions)
-                            ->title(__('Screening Questions'))
+                        ? Layout::view('partials.screening-questions')
                         : null,
                 ]),
                 // Right: comments

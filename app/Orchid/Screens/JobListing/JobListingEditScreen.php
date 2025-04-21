@@ -34,9 +34,11 @@ class JobListingEditScreen extends Screen
      */
     public function query(JobListing $job): iterable
     {
-        // Eager load existing screening questions and application count
-        $job->load('screeningQuestions');
-        $job->loadCount('applications');
+        // If editing an existing job, eager load screening questions and application count
+        if ($job->exists) {
+            $job->load('screeningQuestions');
+            $job->loadCount('applications');
+        }
         return [
             'job' => $job,
         ];
