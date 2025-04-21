@@ -129,7 +129,10 @@ return [
         'stylesheets' => [
             '/css/style.css',
         ],
-        'scripts'     => [],
+        'scripts'     => [
+            // Load centralized custom admin scripts
+            '/js/custom.js',
+        ],
     ],
 
     /*

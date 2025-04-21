@@ -11,6 +11,9 @@ use Orchid\Screen\Actions\Button;
 use Orchid\Screen\Sight;
 use Illuminate\Http\Request;
 use Orchid\Support\Facades\Toast;
+use Illuminate\Support\Facades\Auth;
+use Orchid\Screen\Fields\Input;
+use App\Models\ApplicationComment;
 
 class ApplicationViewScreen extends Screen
 {
@@ -35,6 +38,7 @@ class ApplicationViewScreen extends Screen
             'answers.question',
             'jobListing.screeningQuestions',
             'tracking',
+            'comments.user',
         ]);
         return [
             'application' => $application,
@@ -92,6 +96,24 @@ class ApplicationViewScreen extends Screen
         ];
     }
 
+    /**
+     * Add a comment to this application.
+     *
+     * @param Request $request
+     */
+    public function addComment(Request $request): void
+    {
+        $app = JobApplication::findOrFail($request->get('id'));
+        $text = trim($request->get('comment_text', ''));
+        if ($text !== '') {
+            $app->comments()->create([
+                'comment_text' => $text,
+                'source'       => 'panel',
+                'user_id'      => Auth::id(),
+            ]);
+            Toast::info(__('Comment added.'));
+        }
+    }
     /**
      * Screen layout.
      *
@@ -166,17 +188,45 @@ class ApplicationViewScreen extends Screen
 
         // Assemble layouts: include sticky header CSS first
         // Assemble layouts
-        $layouts = [
-            Layout::legend('application', $basic)
-                ->title(__('Application Details')),
+        $application_details = Layout::legend('application', $basic)
+            ->title(__('Application Details'));
+
+        // Two-column layout: details + screening (70%) and comments (30%)
+        return [
+            // Two-column layout: details+screening and comments
+            Layout::split([
+                // Left: details and screening
+                array_filter([
+                    $application_details,
+                    !empty($questions)
+                        ? Layout::legend('application', $questions)
+                            ->title(__('Screening Questions'))
+                        : null,
+                ]),
+                // Right: comments
+                [
+                    Layout::block([
+                        Layout::view('partials.application-comments'),
+                        Layout::rows([
+                            Input::make('comment_text')
+                                ->type('textarea')
+                                ->title(__('New Comment'))
+                                ->required()
+                                ->rows(3),
+                            Button::make(__('Add Comment'))
+                                ->icon('bs.chat-dots')
+                                ->method('addComment', ['id' => $this->application->id]),
+                        ]),
+                    ])
+                        ->title(__('Comments'))
+                        ->vertical(),
+                ],
+            ])
+            ->ratio('70/30')
+            ->reverseOnPhone(),
+            // Enable Enter key submission
+            Layout::view('partials.application-comment-enter'),
         ];
-
-        if (!empty($questions)) {
-            $layouts[] = Layout::legend('application', $questions)
-                ->title(__('Screening Questions'));
-        }
-
-        return $layouts;
     }
     /**
      * Change application status.

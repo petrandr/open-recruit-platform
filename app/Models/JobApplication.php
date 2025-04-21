@@ -97,6 +97,13 @@ class JobApplication extends Model
     {
         return $this->hasMany(JobApplicationAnswer::class, 'application_id');
     }
+    /**
+     * JobApplication has many comments.
+     */
+    public function comments()
+    {
+        return $this->hasMany(ApplicationComment::class, 'application_id');
+    }
 
     /**
      * JobApplication has one tracking record.
