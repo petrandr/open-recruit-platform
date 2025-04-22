@@ -326,4 +326,18 @@ return [
 
     'provider' => \App\Orchid\PlatformProvider::class,
 
+    /*
+    |--------------------------------------------------------------------------
+    | Application Organization
+    |--------------------------------------------------------------------------
+    |
+    | This value defines the name of your organization or company. It can be
+    | used throughout your application for branding purposes, system messages,
+    | email signatures, or other display locations. The value is typically
+    | pulled from the environment configuration to allow flexibility.
+    |
+    */
+
+    'organization' => env('PLATFORM_ORGANIZATION'),
+
 ];

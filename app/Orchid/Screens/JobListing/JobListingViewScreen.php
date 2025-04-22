@@ -9,6 +9,8 @@ use Orchid\Support\Facades\Layout;
 use Orchid\Screen\Sight;
 use Orchid\Screen\Actions\Link;
 use Orchid\Support\Facades\Toast;
+use Orchid\Screen\Actions\Button;
+use Illuminate\Http\Request;
 
 /**
  * Display a full view of a job listing.
@@ -76,6 +78,31 @@ class JobListingViewScreen extends Screen
             Link::make(__('Edit'))
                 ->icon('bs.pencil')
                 ->route('platform.jobs.edit', $this->job->id),
+            // Change job status
+            Button::make(__('Activate'))
+                ->icon('bs.check2-circle')
+                ->method('changeJobStatus', [
+                    'id'     => $this->job->id,
+                    'status' => 'active',
+                ])
+                ->confirm(__('Are you sure you want to activate this job position?'))
+                ->novalidate(),
+            Button::make(__('Set Inactive'))
+                ->icon('bs.pause-circle')
+                ->method('changeJobStatus', [
+                    'id'     => $this->job->id,
+                    'status' => 'inactive',
+                ])
+                ->confirm(__('Are you sure you want to set this job position to inactive?'))
+                ->novalidate(),
+            Button::make(__('Disable'))
+                ->icon('bs.x-circle')
+                ->method('changeJobStatus', [
+                    'id'     => $this->job->id,
+                    'status' => 'disable',
+                ])
+                ->confirm(__('Are you sure you want to disable this job position?'))
+                ->novalidate(),
         ];
     }
 
@@ -151,5 +178,17 @@ class JobListingViewScreen extends Screen
                 ? Layout::legend('job', $screening)->title(__('Screening Questions'))
                 : null,
         ];
+    }
+    /**
+     * Change the status of this job listing.
+     *
+     * @param Request $request
+     */
+    public function changeJobStatus(Request $request): void
+    {
+        $job    = JobListing::findOrFail($request->get('id'));
+        $status = $request->get('status');
+        $job->update(['status' => $status]);
+        Toast::info(__('Job status changed to :status', ['status' => ucfirst($status)]));
     }
 }
