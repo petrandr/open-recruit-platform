@@ -38,11 +38,26 @@ class ApplicationListScreen extends Screen
      */
     public function query(Request $request): iterable
     {
-        // Apply filters via Orchid Filterable
-        $applications = JobApplication::with('jobListing', 'candidate')
+        // Base query with Orchid filters and sorting
+        $query = JobApplication::with('jobListing', 'candidate')
             ->filters(ApplicationFiltersLayout::class)
-            ->defaultSort('id', 'desc')
-            ->paginate();
+            ->defaultSort('id', 'desc');
+
+        if ($name = $request->get('candidate')) {
+            $query->whereHas('candidate', function ($q) use ($name) {
+                $q->where('first_name', 'like', "%{$name}%")
+                    ->orWhere('last_name', 'like', "%{$name}%");
+            });
+        }
+
+        // Apply free-text filter for job title if provided
+        if ($jobTitle = $request->input('filter.job_title')) {
+            $query->whereHas('jobListing', function ($q) use ($jobTitle) {
+                $q->where('title', 'ilike', "%{$jobTitle}%");
+            });
+        }
+
+        $applications = $query->paginate();
         return [
             'applications' => $applications,
         ];
@@ -98,17 +113,17 @@ class ApplicationListScreen extends Screen
         if ($application->candidate) {
             // Replace personal info with placeholders
             $application->candidate->update([
-                'first_name'    => 'Anonymous',
-                'last_name'     => 'Applicant',
-                'email'         => sprintf('anon+%d@example.com', $application->id),
+                'first_name' => 'Anonymous',
+                'last_name' => 'Applicant',
+                'email' => sprintf('anon+%d@example.com', $application->id),
                 'mobile_number' => '0000000000',
             ]);
         }
         // Clear application-specific personal fields
         $application->update([
             'linkedin_profile' => '',
-            'github_profile'   => '',
-            'how_heard'        => '',
+            'github_profile' => '',
+            'how_heard' => '',
         ]);
         Toast::info('Application personal data was anonymized.');
     }

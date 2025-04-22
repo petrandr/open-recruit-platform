@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Orchid\Filters\Filterable;
 use Orchid\Screen\AsSource;
 use Orchid\Filters\Types\Where;
+use App\Orchid\Filters\Types\InsensitiveLike;
 use Orchid\Filters\Types\Like;
 use Orchid\Filters\Types\WhereDateStartEnd;
 
@@ -32,12 +33,12 @@ class Candidate extends Model
      * @var array
      */
     protected $allowedFilters = [
-        'id'         => Where::class,
-        'first_name'=> Like::class,
-        'last_name' => Like::class,
-        'email'     => Like::class,
-        'created_at'=> WhereDateStartEnd::class,
-        'updated_at'=> WhereDateStartEnd::class,
+        'id'          => Where::class,
+        'first_name'  => InsensitiveLike::class,
+        'last_name'   => InsensitiveLike::class,
+        'email'       => InsensitiveLike::class,
+        'created_at'  => WhereDateStartEnd::class,
+        'updated_at'  => WhereDateStartEnd::class,
     ];
 
     /**
@@ -53,6 +54,7 @@ class Candidate extends Model
         'applications_count', // Allows sorting by number of applications
         'created_at',
         'updated_at',
+        'full_name',        // Allows sorting by concatenated first and last name
     ];
 
     /**

@@ -37,7 +37,8 @@ class CandidateListScreen extends Screen
     {
         return [
             // Include application counts for sorting and display; filters needed for sorting
-            'candidates' => Candidate::withCount('applications')
+            'candidates' => Candidate::selectRaw("candidates.*, CONCAT(first_name, ' ', last_name) AS full_name")
+                ->withCount('applications')
                 ->filters(\App\Orchid\Layouts\Candidate\CandidateFiltersLayout::class)
                 ->defaultSort('id', 'desc')
                 ->paginate(),

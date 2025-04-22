@@ -27,6 +27,7 @@ use App\Orchid\Screens\JobListing\JobListingEditScreen;
 use App\Orchid\Screens\JobListing\JobListingViewScreen;
 use App\Models\JobListing;
 use App\Orchid\Screens\Candidate\CandidateListScreen;
+use App\Orchid\Screens\Candidate\CandidateViewScreen;
 use App\Orchid\Screens\ActivityLog\ActivityLogListScreen;
 use App\Orchid\Screens\ActivityLog\ActivityLogViewScreen;
 
@@ -123,6 +124,12 @@ Route::screen('candidates', CandidateListScreen::class)
     ->breadcrumbs(fn (Trail $trail) => $trail
         ->parent('platform.index')
         ->push(__('Candidates'), route('platform.candidates')));
+// Platform > Recruitment > Candidate Details
+Route::screen('candidates/{candidate}', CandidateViewScreen::class)
+    ->name('platform.candidates.view')
+    ->breadcrumbs(fn (Trail $trail, \App\Models\Candidate $candidate) => $trail
+        ->parent('platform.candidates')
+        ->push($candidate->full_name, route('platform.candidates.view', $candidate)));
 // Platform > Recruitment > Applications
 Route::screen('applications', ApplicationListScreen::class)
     ->name('platform.applications')

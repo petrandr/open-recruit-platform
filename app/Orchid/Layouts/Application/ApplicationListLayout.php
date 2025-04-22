@@ -46,9 +46,14 @@ class ApplicationListLayout extends Table
                     );
                 }),
 
-            TD::make('job', __('Job'))
-                ->filter(Input::make())
-                ->render(fn(JobApplication $application) => $application->jobListing?->title ?? '-'),
+            TD::make('job_title', 'Job Title')
+                ->render(fn ($app) => $app->jobListing->title)
+                ->sort()
+                ->filter(
+                    Input::make()
+                        ->type('text')
+                        ->placeholder('Search job title')
+                ),
 
             // Desired Salary with currency
             TD::make('desired_salary', __('Desired Salary'))

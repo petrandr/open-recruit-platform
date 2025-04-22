@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Orchid\Filters\Types\InsensitiveLike;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Orchid\Filters\Filterable;
@@ -53,7 +54,7 @@ class JobListing extends Model
      */
     protected $allowedFilters = [
         'id'          => Where::class,
-        'title'       => Like::class,
+        'title'       => InsensitiveLike::class,
         'status'      => Where::class,
         'date_opened' => WhereDateStartEnd::class,
         'created_at'  => WhereDateStartEnd::class,

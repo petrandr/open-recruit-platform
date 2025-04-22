@@ -44,7 +44,7 @@ class JobApplication extends Model
     protected $casts = [
         'rejection_sent' => 'boolean',
         'desired_salary' => 'decimal:2',
-        'submitted_at'   => 'datetime',
+        'submitted_at' => 'datetime',
     ];
 
     /**
@@ -53,11 +53,11 @@ class JobApplication extends Model
      * @var array
      */
     protected $allowedFilters = [
-        'id'           => Where::class,
-        'status'       => Where::class,
+        'id' => Where::class,
+        'status' => Where::class,
         'submitted_at' => WhereDateStartEnd::class,
-        'created_at'   => WhereDateStartEnd::class,
-        'updated_at'   => WhereDateStartEnd::class,
+        'created_at' => WhereDateStartEnd::class,
+        'updated_at' => WhereDateStartEnd::class,
     ];
 
     /**
@@ -67,6 +67,7 @@ class JobApplication extends Model
      */
     protected $allowedSorts = [
         'id',
+        'job_id',
         'status',
         'submitted_at',
         'created_at',
@@ -97,6 +98,7 @@ class JobApplication extends Model
     {
         return $this->hasMany(JobApplicationAnswer::class, 'application_id');
     }
+
     /**
      * JobApplication has many comments.
      */
