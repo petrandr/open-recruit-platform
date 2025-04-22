@@ -33,20 +33,57 @@ class PlatformProvider extends OrchidServiceProvider
      */
     public function menu(): array
     {
-        return [
+        $menus = [
             Menu::make(__('Jobs'))
                 ->icon('bs.briefcase')
                 ->route('platform.jobs')
                 ->permission('platform.jobs')
-                ->title(__('Recruitment')),
+                ->set('group', 'Recruitment'),
+
             Menu::make(__('Candidates'))
                 ->icon('bs.person-lines-fill')
                 ->route('platform.candidates')
-                ->permission('platform.candidates'),
+                ->permission('platform.candidates')
+                ->set('group', 'Recruitment'),
+
             Menu::make(__('Applications'))
                 ->icon('bs.file-earmark-text')
                 ->route('platform.applications')
-                ->permission('platform.applications'),
+                ->permission('platform.applications')
+                ->set('group', 'Recruitment'),
+
+            Menu::make(__('Users'))
+                ->icon('bs.people')
+                ->route('platform.systems.users')
+                ->permission('platform.systems.users')
+                ->set('group', 'Access Controls'),
+
+            Menu::make(__('Roles'))
+                ->icon('bs.shield')
+                ->route('platform.systems.roles')
+                ->permission('platform.systems.roles')
+                ->set('group', 'Access Controls')
+                ->divider(),
+
+            Menu::make(__('Activity Logs'))
+                ->icon('bs.clock-history')
+                ->route('platform.activity.logs')
+                ->permission('platform.activity-logs')
+                ->set('group', 'System')
+                ->divider(),
+        ];
+
+        // Display category titles on the first visible item of each group
+        foreach (['Recruitment', 'Access Controls', 'System'] as $groupTitle) {
+            foreach ($menus as $menu) {
+                if ($menu->get('group') === $groupTitle && $menu->isSee()) {
+                    $menu->title(__($groupTitle));
+                    break;
+                }
+            }
+        }
+
+        return $menus;
 
 //            Menu::make('Get Started')
 //                ->icon('bs.book')
@@ -80,37 +117,6 @@ class PlatformProvider extends OrchidServiceProvider
 //                ->route('platform.example.cards')
 //                ->divider(),
 
-            Menu::make(__('Users'))
-                ->icon('bs.people')
-                ->route('platform.systems.users')
-                ->permission('platform.systems.users')
-                ->title(__('Access Controls')),
-
-            Menu::make(__('Roles'))
-                ->icon('bs.shield')
-                ->route('platform.systems.roles')
-                ->permission('platform.systems.roles')
-                ->divider(),
-
-            Menu::make(__('Activity Logs'))
-                ->icon('bs.clock-history')
-                ->route('platform.activity.logs')
-                ->permission('platform.activity-logs')
-                ->title(__('System'))
-                ->divider(),
-
-//            Menu::make('Documentation')
-//                ->title('Docs')
-//                ->icon('bs.box-arrow-up-right')
-//                ->url('https://orchid.software/en/docs')
-//                ->target('_blank'),
-//
-//            Menu::make('Changelog')
-//                ->icon('bs.box-arrow-up-right')
-//                ->url('https://github.com/orchidsoftware/platform/blob/master/CHANGELOG.md')
-//                ->target('_blank')
-//                ->badge(fn () => Dashboard::version(), Color::DARK),
-        ];
     }
 
     /**

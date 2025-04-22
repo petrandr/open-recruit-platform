@@ -83,16 +83,20 @@ class ApplicationViewScreen extends Screen
             // Allow resetting status to Submitted
             Button::make(__('Submitted'))
                 ->icon('bs.calendar2-check')
-                ->method('changeStatus', ['id' => $this->application->id, 'status' => 'submitted']),
+                ->method('changeStatus', ['id' => $this->application->id, 'status' => 'submitted'])
+                ->novalidate(),
             Button::make(__('Under Review'))
                 ->icon('bs.hourglass-split')
-                ->method('changeStatus', ['id' => $this->application->id, 'status' => 'under review']),
+                ->method('changeStatus', ['id' => $this->application->id, 'status' => 'under review'])
+                ->novalidate(),
             Button::make(__('Accept'))
                 ->icon('bs.check2-circle')
-                ->method('changeStatus', ['id' => $this->application->id, 'status' => 'accepted']),
+                ->method('changeStatus', ['id' => $this->application->id, 'status' => 'accepted'])
+                ->novalidate(),
             Button::make(__('Reject'))
                 ->icon('bs.x-circle')
-                ->method('changeStatus', ['id' => $this->application->id, 'status' => 'rejected']),
+                ->method('changeStatus', ['id' => $this->application->id, 'status' => 'rejected'])
+                ->novalidate(),
         ];
     }
 
