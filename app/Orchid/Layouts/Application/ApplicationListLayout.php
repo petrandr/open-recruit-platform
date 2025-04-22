@@ -106,9 +106,22 @@ class ApplicationListLayout extends Table
                     return "<span class=\"badge bg-{$color} status-badge\">{$label}</span>";
                 }),
 
-            TD::make('location', __('Location'))
+            TD::make('city', __('City'))
                 ->sort()
-                ->render(fn(JobApplication $application) => ucfirst($application->location)),
+                ->filter(
+                    Input::make()
+                        ->type('text')
+                        ->placeholder('Search job city')
+                )
+                ->render(fn(JobApplication $application) => ucfirst($application->city)),
+            TD::make('country', __('Country'))
+                ->sort()
+                ->filter(
+                    Input::make()
+                        ->type('text')
+                        ->placeholder('Search job country')
+                )
+                ->render(fn(JobApplication $application) => ucfirst($application->country)),
 
             TD::make('submitted_at', __('Submitted'))
                 ->usingComponent(DateTimeSplit::class)

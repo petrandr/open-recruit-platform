@@ -94,7 +94,10 @@ class PlatformProvider extends OrchidServiceProvider
 
             Menu::make(__('Activity Logs'))
                 ->icon('bs.clock-history')
-                ->route('platform.activity.logs'),
+                ->route('platform.activity.logs')
+                ->permission('platform.activity-logs')
+                ->title(__('System'))
+                ->divider(),
 
 //            Menu::make('Documentation')
 //                ->title('Docs')

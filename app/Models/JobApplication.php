@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Orchid\Filters\Filterable;
+use Orchid\Filters\Types\Ilike;
 use Orchid\Screen\AsSource;
 use Orchid\Filters\Types\Where;
 use Orchid\Filters\Types\Like;
@@ -24,7 +25,8 @@ class JobApplication extends Model
         'applicant_id',
         'cv_path',
         'cv_disk',
-        'location',
+        'city',
+        'country',
         'status',
         'rejection_sent',
         'notice_period',
@@ -55,6 +57,8 @@ class JobApplication extends Model
     protected $allowedFilters = [
         'id' => Where::class,
         'status' => Where::class,
+        'city' => Ilike::class,
+        'country' => Ilike::class,
         'submitted_at' => WhereDateStartEnd::class,
         'created_at' => WhereDateStartEnd::class,
         'updated_at' => WhereDateStartEnd::class,
@@ -73,6 +77,8 @@ class JobApplication extends Model
         'created_at',
         'updated_at',
         'desired_salary',
+        'city',
+        'country',
     ];
 
     /**
