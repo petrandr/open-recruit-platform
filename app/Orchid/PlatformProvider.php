@@ -71,20 +71,7 @@ class PlatformProvider extends OrchidServiceProvider
                 ->permission('platform.activity-logs')
                 ->set('group', 'System')
                 ->divider(),
-        ];
-
-        // Display category titles on the first visible item of each group
-        foreach (['Recruitment', 'Access Controls', 'System'] as $groupTitle) {
-            foreach ($menus as $menu) {
-                if ($menu->get('group') === $groupTitle && $menu->isSee()) {
-                    $menu->title(__($groupTitle));
-                    break;
-                }
-            }
-        }
-
-        return $menus;
-
+//
 //            Menu::make('Get Started')
 //                ->icon('bs.book')
 //                ->title('Navigation')
@@ -116,6 +103,19 @@ class PlatformProvider extends OrchidServiceProvider
 //                ->icon('bs.card-text')
 //                ->route('platform.example.cards')
 //                ->divider(),
+        ];
+
+        // Display category titles on the first visible item of each group
+        foreach (['Recruitment', 'Access Controls', 'System'] as $groupTitle) {
+            foreach ($menus as $menu) {
+                if ($menu->get('group') === $groupTitle && $menu->isSee()) {
+                    $menu->title(__($groupTitle));
+                    break;
+                }
+            }
+        }
+
+        return $menus;
 
     }
 

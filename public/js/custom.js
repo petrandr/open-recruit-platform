@@ -17,13 +17,13 @@
 
   // Bind Enter key to submit comments
   function bindCommentEnter() {
-    const textarea = document.querySelector('textarea[name="comment_text"]');
+    const textarea = document.querySelector('textarea.comment-textarea');
     if (!textarea || textarea._enterBound) return;
     textarea._enterBound = true;
     textarea.addEventListener('keydown', function(e) {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
-        const btn = document.querySelector('button[data-method="addComment"]');
+        const btn = document.querySelector('button.comment-submit');
         if (btn) btn.click();
       }
     });
@@ -100,7 +100,7 @@
         .catch(err => { body.innerHTML = '<p class="text-danger">Failed to load details.</p>'; });
     });
   }
-  
+
   // Bind dynamic screening questions add/remove/type logic
   function bindScreeningQuestions() {
     const container = document.getElementById('screening-questions-container');

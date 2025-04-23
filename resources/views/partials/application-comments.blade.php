@@ -1,8 +1,5 @@
 @if($application->comments->isNotEmpty())
-  <div class="card mb-4">
-    <div class="card-header">
-      <h6 class="mb-0">{{ __('Comments') }}</h6>
-    </div>
+  <div class="card mb-4 bg-white rounded">
     <div class="card-body">
       @foreach($application->comments as $comment)
         <div class="mb-3">

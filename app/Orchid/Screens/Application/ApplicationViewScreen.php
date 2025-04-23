@@ -276,14 +276,15 @@ class ApplicationViewScreen extends Screen
                 Layout::block([
                     Layout::view('partials.application-comments'),
                     Layout::rows([
-                        Input::make('comment_text')
-                            ->type('textarea')
+                        TextArea::make('comment_text')
                             ->title(__('New Comment'))
                             ->required()
-                            ->rows(3),
+                            ->rows(3)
+                            ->class('form-control comment-textarea'),
                         Button::make(__('Add Comment'))
                             ->icon('bs.chat-dots')
-                            ->method('addComment', ['id' => $this->application->id]),
+                            ->method('addComment', ['id' => $this->application->id])
+                            ->class('btn btn-link icon-link comment-submit'),
                     ]),
                 ])
                     ->title(__('Comments'))
