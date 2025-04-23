@@ -97,7 +97,7 @@ class ApplicationViewScreen extends Screen
             // View CV modal trigger
             Link::make(__('View CV'))
                 ->icon('bs.file-earmark-text')
-                ->class('application-cv-trigger btn btn-outline-primary')
+                ->class('application-cv-trigger btn btn-outline-primary text-primary')
                 ->set('data-bs-toggle', 'modal')
                 ->set('data-bs-target', '#applicationCvModal')
                 ->set('data-application-id', $this->application->id),
@@ -292,8 +292,6 @@ class ApplicationViewScreen extends Screen
             ],
         ])
             ->ratio('70/30');
-        // Enable Enter key submission
-        $layouts[] = Layout::view('partials.application-comment-enter');
         // CV preview modal
         $layouts[] = Layout::view('partials.application-cv-modal');
         // Rejection modal: textarea and footer buttons

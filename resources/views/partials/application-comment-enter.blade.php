@@ -1,1 +1,0 @@
-<!-- Comment enter handling moved to resources/js/custom.js -->

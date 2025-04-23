@@ -1,5 +1,5 @@
 @if($application->comments->isNotEmpty())
-  <div class="card mb-4 bg-white rounded">
+  <div class="card bg-white rounded">
     <div class="card-body">
       @foreach($application->comments as $comment)
         <div class="mb-3">
