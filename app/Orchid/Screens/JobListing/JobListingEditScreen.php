@@ -165,6 +165,8 @@ class JobListingEditScreen extends Screen
             'job.bonus'             => 'nullable|string',
             'job.benefits'          => 'nullable|string',
             'job.status'            => ['required', Rule::in(['draft', 'active', 'inactive', 'disable'])],
+            'job.who_to_notify'     => 'nullable|array',
+            'job.who_to_notify.*'   => 'exists:users,id',
         ]);
 
         $job->fill($request->input('job'))->save();

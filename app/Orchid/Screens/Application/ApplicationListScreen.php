@@ -58,6 +58,15 @@ class ApplicationListScreen extends Screen
         }
 
         $applications = $query->paginate();
+
+        // Calculate fit status using model method
+        $applications->getCollection()->transform(function ($application) {
+            $fitData = $application->calculateFit();
+            $application->fit = $fitData['fit'];
+            $application->fitClass = $fitData['fitClass'];
+            return $application;
+        });
+
         return [
             'applications' => $applications,
         ];

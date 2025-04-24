@@ -13,6 +13,10 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Log;
+use App\Notifications\NewApplicationNotification;
+use App\Models\User;
 
 class ApplicationController extends Controller
 {
@@ -97,6 +101,20 @@ class ApplicationController extends Controller
         $utmData = json_decode($validated['utm_params'] ?? '{}', true) ?? [];
         if (! empty($utmData)) {
             $application->tracking()->create($utmData);
+        }
+
+        // Send notification to designated users, failures won't block response
+        $notifyIds = $job->who_to_notify ?? [];
+        if (! empty($notifyIds)) {
+            $users = User::whereIn('id', $notifyIds)->get();
+            try {
+                Notification::send($users, new NewApplicationNotification($application));
+            } catch (\Throwable $e) {
+                Log::error('New application notification failed', [
+                    'application_id' => $application->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
         }
 
         return response()->json([

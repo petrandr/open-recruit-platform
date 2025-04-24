@@ -8,6 +8,8 @@ use Orchid\Screen\Layouts\Rows;
 use Orchid\Screen\Fields\Input;
 use Orchid\Screen\Fields\Select;
 use Orchid\Screen\Fields\DateTimer;
+use Orchid\Screen\Fields\Relation;
+use App\Models\User;
 
 class JobListingGeneralLayout extends Rows
 {
@@ -63,6 +65,10 @@ class JobListingGeneralLayout extends Rows
                 ])
                 ->required()
                 ->title(__('Status')),
+            Relation::make('job.who_to_notify')
+                ->title(__('Notification Recipients'))
+                ->fromModel(User::class, 'name')
+                ->multiple(),
         ];
     }
 }

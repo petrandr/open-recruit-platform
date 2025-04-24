@@ -46,6 +46,10 @@ class ApplicationViewScreen extends Screen
             'tracking',
             'comments.user',
         ]);
+        // Calculate fit status using model method
+        $fitData = $application->calculateFit();
+        $application->fit = $fitData['fit'];
+        $application->fitClass = $fitData['fitClass'];
         // Fetch other applications submitted by this candidate (exclude current)
         $otherApplications = $application->candidate
             ->applications()
@@ -170,6 +174,10 @@ class ApplicationViewScreen extends Screen
                     default => 'secondary',
                 };
                 return "<span class='badge bg-{$color} status-badge'>" . ucfirst($status) . "</span>";
+            }),
+            // Fit status based on screening questions
+            Sight::make('fit', __('Fit'))->render(function () {
+                return "<span class='badge bg-{$this->application->fitClass} status-badge'>{$this->application->fit}</span>";
             }),
             Sight::make('notice_period', __('Notice Period')),
             Sight::make('desired_salary', __('Desired Salary'))->render(function () {

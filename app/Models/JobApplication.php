@@ -120,4 +120,48 @@ class JobApplication extends Model
     {
         return $this->hasOne(ApplicationTracking::class, 'application_id');
     }
+    
+    /**
+     * Calculate fit based on screening question answers.
+     *
+     * @return array{fit: string, fitClass: string, ratio: float, total: int, meets: int}
+     */
+    public function calculateFit(): array
+    {
+        $total = $this->answers->count();
+        $meets = 0;
+        foreach ($this->answers as $answer) {
+            $question = $answer->question;
+            if (!$question) {
+                continue;
+            }
+            if ($question->question_type === 'yes/no') {
+                if (strcasecmp($answer->answer_text, $question->min_value) === 0) {
+                    $meets++;
+                }
+            } elseif ($question->question_type === 'number') {
+                if ((float) $answer->answer_text >= (float) $question->min_value) {
+                    $meets++;
+                }
+            }
+        }
+        $ratio = $total > 0 ? $meets / $total : 0.0;
+        if ($ratio >= 0.8) {
+            $fit = 'Good fit';
+            $fitClass = 'success';
+        } elseif ($ratio >= 0.5) {
+            $fit = 'Maybe';
+            $fitClass = 'warning';
+        } else {
+            $fit = 'Not a fit';
+            $fitClass = 'danger';
+        }
+        return [
+            'fit'      => $fit,
+            'fitClass' => $fitClass,
+            'ratio'    => $ratio,
+            'total'    => $total,
+            'meets'    => $meets,
+        ];
+    }
 }

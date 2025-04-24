@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Orchid\Layouts\Application;
 
 use Orchid\Screen\Fields\Input;
+use Orchid\Screen\Fields\Select;
 use Orchid\Screen\Layouts\Table;
 use Orchid\Screen\TD;
 use App\Models\JobApplication;
@@ -104,6 +105,11 @@ class ApplicationListLayout extends Table
                         default => 'secondary',
                     };
                     return "<span class=\"badge bg-{$color} status-badge\">{$label}</span>";
+                }),
+
+            TD::make('is_a_fit', __('Is a Fit'))
+                ->render(function (JobApplication $application) {
+                    return "<span class=\"badge bg-{$application->fitClass} status-badge\">{$application->fit}</span>";
                 }),
 
             TD::make('city', __('City'))
