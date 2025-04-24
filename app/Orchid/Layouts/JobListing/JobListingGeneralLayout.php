@@ -65,10 +65,18 @@ class JobListingGeneralLayout extends Rows
                 ])
                 ->required()
                 ->title(__('Status')),
+
+            Input::make('job.short_description')
+                ->title(__('Short Description'))
+                ->type('text')
+                ->required()
+                ->title(__('Short Description')),
+
             Relation::make('job.who_to_notify')
                 ->title(__('Notification Recipients'))
                 ->fromModel(User::class, 'name')
                 ->multiple(),
+
         ];
     }
 }
