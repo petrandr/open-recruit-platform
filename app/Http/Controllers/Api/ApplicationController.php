@@ -34,7 +34,7 @@ class ApplicationController extends Controller
             'last_name'        => 'required|string|max:255',
             'email'            => 'required|email|max:255',
             'mobile_number'    => 'required|string|max:255',
-            'cv'               => 'required|file|mimes:pdf,doc,docx|max:2048',
+            'cv'               => 'required|file|mimes:pdf,doc,docx,odt,rtf|max:5120',
             'city'             => 'required|string|max:255',
             'country'          => 'required|string|max:255',
             'notice_period'    => 'nullable|string|max:50',
