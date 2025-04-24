@@ -49,91 +49,91 @@ Route::screen('/main', PlatformScreen::class)
 // Platform > Profile
 Route::screen('profile', UserProfileScreen::class)
     ->name('platform.profile')
-    ->breadcrumbs(fn (Trail $trail) => $trail
+    ->breadcrumbs(fn(Trail $trail) => $trail
         ->parent('platform.index')
         ->push(__('Profile'), route('platform.profile')));
 
 // Platform > System > Users > User
 Route::screen('users/{user}/edit', UserEditScreen::class)
     ->name('platform.systems.users.edit')
-    ->breadcrumbs(fn (Trail $trail, $user) => $trail
+    ->breadcrumbs(fn(Trail $trail, $user) => $trail
         ->parent('platform.systems.users')
         ->push($user->name, route('platform.systems.users.edit', $user)));
 
 // Platform > System > Users > Create
 Route::screen('users/create', UserEditScreen::class)
     ->name('platform.systems.users.create')
-    ->breadcrumbs(fn (Trail $trail) => $trail
+    ->breadcrumbs(fn(Trail $trail) => $trail
         ->parent('platform.systems.users')
         ->push(__('Create'), route('platform.systems.users.create')));
 
 // Platform > System > Users
 Route::screen('users', UserListScreen::class)
     ->name('platform.systems.users')
-    ->breadcrumbs(fn (Trail $trail) => $trail
+    ->breadcrumbs(fn(Trail $trail) => $trail
         ->parent('platform.index')
         ->push(__('Users'), route('platform.systems.users')));
 
 // Platform > System > Roles > Role
 Route::screen('roles/{role}/edit', RoleEditScreen::class)
     ->name('platform.systems.roles.edit')
-    ->breadcrumbs(fn (Trail $trail, $role) => $trail
+    ->breadcrumbs(fn(Trail $trail, $role) => $trail
         ->parent('platform.systems.roles')
         ->push($role->name, route('platform.systems.roles.edit', $role)));
 
 // Platform > System > Roles > Create
 Route::screen('roles/create', RoleEditScreen::class)
     ->name('platform.systems.roles.create')
-    ->breadcrumbs(fn (Trail $trail) => $trail
+    ->breadcrumbs(fn(Trail $trail) => $trail
         ->parent('platform.systems.roles')
         ->push(__('Create'), route('platform.systems.roles.create')));
 
 // Platform > System > Roles
 Route::screen('roles', RoleListScreen::class)
     ->name('platform.systems.roles')
-    ->breadcrumbs(fn (Trail $trail) => $trail
+    ->breadcrumbs(fn(Trail $trail) => $trail
         ->parent('platform.index')
         ->push(__('Roles'), route('platform.systems.roles')));
 // Platform > Recruitment > Jobs > Create
 Route::screen('jobs/create', JobListingEditScreen::class)
     ->name('platform.jobs.create')
-    ->breadcrumbs(fn (Trail $trail) => $trail
+    ->breadcrumbs(fn(Trail $trail) => $trail
         ->parent('platform.jobs')
         ->push(__('Create'), route('platform.jobs.create')));
 // Platform > Recruitment > Jobs > Edit
 Route::screen('jobs/{job}/edit', JobListingEditScreen::class)
     ->name('platform.jobs.edit')
-    ->breadcrumbs(fn (Trail $trail, JobListing $job) => $trail
+    ->breadcrumbs(fn(Trail $trail, JobListing $job) => $trail
         ->parent('platform.jobs')
         ->push($job->title, route('platform.jobs.edit', $job)));
 // Platform > Recruitment > Jobs > View
 Route::screen('jobs/{job}', JobListingViewScreen::class)
     ->name('platform.jobs.view')
-    ->breadcrumbs(fn (Trail $trail, JobListing $job) => $trail
+    ->breadcrumbs(fn(Trail $trail, JobListing $job) => $trail
         ->parent('platform.jobs')
         ->push($job->title, route('platform.jobs.view', $job)));
 // Platform > Recruitment > Jobs
 Route::screen('jobs', JobListingListScreen::class)
     ->name('platform.jobs')
-    ->breadcrumbs(fn (Trail $trail) => $trail
+    ->breadcrumbs(fn(Trail $trail) => $trail
         ->parent('platform.index')
         ->push(__('Jobs'), route('platform.jobs')));
 // Platform > Recruitment > Candidates
 Route::screen('candidates', CandidateListScreen::class)
     ->name('platform.candidates')
-    ->breadcrumbs(fn (Trail $trail) => $trail
+    ->breadcrumbs(fn(Trail $trail) => $trail
         ->parent('platform.index')
         ->push(__('Candidates'), route('platform.candidates')));
 // Platform > Recruitment > Candidate Details
 Route::screen('candidates/{candidate}', CandidateViewScreen::class)
     ->name('platform.candidates.view')
-    ->breadcrumbs(fn (Trail $trail, \App\Models\Candidate $candidate) => $trail
+    ->breadcrumbs(fn(Trail $trail, \App\Models\Candidate $candidate) => $trail
         ->parent('platform.candidates')
         ->push($candidate->full_name, route('platform.candidates.view', $candidate)));
 // Platform > Recruitment > Applications
 Route::screen('applications', ApplicationListScreen::class)
     ->name('platform.applications')
-    ->breadcrumbs(fn (Trail $trail) => $trail
+    ->breadcrumbs(fn(Trail $trail) => $trail
         ->parent('platform.index')
         ->push(__('Applications'), route('platform.applications')));
 // Platform > Recruitment > Application Details (AJAX)
@@ -149,19 +149,19 @@ Route::get('screening-questions/search', [\App\Http\Controllers\ScreeningQuestio
 // Platform > Recruitment > Application Full View
 Route::screen('applications/{application}', ApplicationViewScreen::class)
     ->name('platform.applications.view')
-    ->breadcrumbs(fn (Trail $trail, JobApplication $application) => $trail
+    ->breadcrumbs(fn(Trail $trail, JobApplication $application) => $trail
         ->parent('platform.applications')
         ->push("#{$application->id}", route('platform.applications.view', $application)));
 // Platform > System > Activity Logs
 Route::screen('activity-logs', ActivityLogListScreen::class)
     ->name('platform.activity.logs')
-    ->breadcrumbs(fn (Trail $trail) => $trail
+    ->breadcrumbs(fn(Trail $trail) => $trail
         ->parent('platform.index')
         ->push(__('Activity Logs'), route('platform.activity.logs')));
 // Platform > System > Activity Log Detail
 Route::screen('activity-logs/{id}', ActivityLogViewScreen::class)
     ->name('platform.activity.log')
-    ->breadcrumbs(fn (Trail $trail, $id) => $trail
+    ->breadcrumbs(fn(Trail $trail, $id) => $trail
         ->parent('platform.activity.logs')
         ->push("#{$id}", route('platform.activity.log', $id)));
 

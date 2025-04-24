@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\SamlAuthentication;
+
 return [
 
     /*
@@ -45,8 +47,8 @@ return [
      */
 
     'middleware' => [
-        'public'  => ['web', 'cache.headers:private;must_revalidate;etag'],
-        'private' => ['web', 'platform', 'cache.headers:private;must_revalidate;etag'],
+        'public'  => ['web', SamlAuthentication::class, 'cache.headers:private;must_revalidate;etag'],
+        'private' => ['web', SamlAuthentication::class, 'platform', 'cache.headers:private;must_revalidate;etag'],
     ],
 
     /*
@@ -84,7 +86,31 @@ return [
      |
      */
 
-    'auth' => true,
+    'auth' => env('PLATFORM_AUTH', true),
+
+    /*
+     |--------------------------------------------------------------------------
+     | SAML Authentication Integration
+     |--------------------------------------------------------------------------
+     |
+     | This option enables support for SAML-based single sign-on (SSO) within
+     | the Orchid admin panel. When set to true, your application is expected
+     | to handle authentication using a SAML identity provider (IdP) such as
+     | Azure AD, Google Workspace, or Okta.
+     |
+     | If enabled, Orchid’s built-in authentication routes (login, password reset,
+     | etc.) should be disabled using the 'auth' => false setting above.
+     |
+     | You must also configure custom middleware (e.g., 'only-saml') to redirect
+     | unauthenticated users to the IdP login flow and handle the SAML response.
+     |
+     | Important: Enabling this does not automatically configure SAML — it is
+     | simply a flag you can reference within your app to adjust behavior
+     | conditionally (e.g., middleware logic, route protection, feature toggles).
+     |
+     */
+
+    'saml_auth' => env('PLATFORM_SAML_AUTH', false),
 
     /*
      |--------------------------------------------------------------------------
