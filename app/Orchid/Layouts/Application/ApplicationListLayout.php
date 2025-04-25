@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Orchid\Layouts\Application;
 
+use App\Support\ApplicationStatus;
 use Orchid\Screen\Fields\Input;
 use Orchid\Screen\Fields\Select;
 use Orchid\Screen\Layouts\Table;
@@ -92,24 +93,18 @@ class ApplicationListLayout extends Table
                 }),
 
             TD::make('status', __('Status'))
-                ->filter(TD::FILTER_SELECT, [
-                    'submitted'  => __('Submitted'),
-                    'under review'  => __('Under Review'),
-                    'accepted' => __('Accepted'),
-                    'rejected'   => __('Rejected'),
-                ])
+                ->filter(TD::FILTER_SELECT, collect(ApplicationStatus::all())
+                    ->mapWithKeys(fn($meta, $key) => [$key => $meta['label']])
+                    ->toArray()
+                )
                 ->sort()
                 ->render(function (JobApplication $application) {
                     $status = $application->status;
-                    $label = ucfirst($status);
-                    // Map statuses to Bootstrap badge colors
-                    $color = match ($status) {
-                        'under review' => 'warning',
-                        'accepted' => 'success',
-                        'rejected' => 'danger',
-                        default => 'secondary',
-                    };
-                    return "<span class=\"badge bg-{$color} status-badge\">{$label}</span>";
+                    $statuses = ApplicationStatus::all();
+                    $meta = $statuses[$status] ?? null;
+                    $label = $meta['label'] ?? ucfirst($status);
+                    $color = $meta['color'] ?? 'secondary';
+                    return "<span class='badge bg-{$color} status-badge'>{$label}</span>";
                 }),
 
             // Sort and filter by stored fit_ratio (precomputed fit percentage)

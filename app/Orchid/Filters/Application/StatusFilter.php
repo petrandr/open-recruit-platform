@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Orchid\Filters\Application;
 
+use App\Support\ApplicationStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Orchid\Filters\Filter;
 use Orchid\Screen\Fields\Select;
@@ -33,21 +34,24 @@ class StatusFilter extends Filter
     {
         return [
             Select::make('status')
-                ->options([
-                    'submitted'   => __('Submitted'),
-                    'under review'=> __('Under Review'),
-                    'accepted'    => __('Accepted'),
-                    'rejected'    => __('Rejected'),
-                ])
+                ->options(
+                    collect(ApplicationStatus::all())
+                        ->mapWithKeys(fn($meta, $key) => [$key => $meta['label']])
+                        ->toArray()
+                )
                 ->empty()
                 ->value($this->request->get('status'))
                 ->title(__('Status')),
         ];
     }
 
-    public function value(): string
-    {
-        $status = $this->request->get('status');
-        return $status ? ucfirst($status) : '';
-    }
+	public function value(): string
+	{
+		$status = $this->request->get('status');
+		if (! $status) {
+			return '';
+		}
+		$statuses = ApplicationStatus::all();
+		return $statuses[$status]['label'] ?? ucfirst($status);
+	}
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Orchid\Screens\Application;
 
 use App\Models\JobApplication;
+use App\Support\ApplicationStatus;
 use Orchid\Screen\Fields\TextArea;
 use Orchid\Screen\Screen;
 use Orchid\Support\Facades\Layout;
@@ -21,6 +22,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\ApplicationRejectedMail;
 use Orchid\Screen\Fields\Input;
 use App\Models\ApplicationComment;
+use function PHPUnit\Framework\containsIdentical;
 
 class ApplicationViewScreen extends Screen
 {
@@ -102,33 +104,33 @@ class ApplicationViewScreen extends Screen
                 ->set('data-bs-toggle', 'modal')
                 ->set('data-bs-target', '#applicationCvModal')
                 ->set('data-application-id', $this->application->id),
-            // Group status actions under a dropdown
+            // Change status dropdown (centralized statuses)
             DropDown::make(__('Change Status'))
                 ->icon('bs.sliders')
-                ->list([
-                    Button::make(__('Submitted'))
-                        ->icon('bs.calendar2-check')
-                        ->method('changeStatus', ['id' => $this->application->id, 'status' => 'submitted'])
-                        ->confirm(__('Reset status to Submitted?'))
-                        ->novalidate(),
-
-                    Button::make(__('Under Review'))
-                        ->icon('bs.hourglass-split')
-                        ->method('changeStatus', ['id' => $this->application->id, 'status' => 'under review'])
-                        ->confirm(__('Mark application as Under Review?'))
-                        ->novalidate(),
-
-                    Button::make(__('Accept'))
-                        ->icon('bs.check2-circle')
-                        ->method('changeStatus', ['id' => $this->application->id, 'status' => 'accepted'])
-                        ->confirm(__('Accept this application?'))
-                        ->novalidate(),
-
-                    ModalToggle::make(__('Reject'))
-                        ->icon('bs.x-circle')
-                        ->modal('rejectModal')
-                        ->novalidate(),
-                ]),
+                ->list(
+                    collect(ApplicationStatus::all())
+                        ->filter(function ($meta, $key) {
+                            return $key !== $this->application->status;
+                        })
+                        ->map(function ($meta, $key) {
+                            if ($key == $this->application->status) {
+                                return;
+                            }
+                            // Use modal for rejected status
+                            if ($key === 'rejected') {
+                                return ModalToggle::make($meta['label'])
+                                    ->icon($meta['icon'])
+                                    ->modal('rejectModal')
+                                    ->novalidate();
+                            }
+                            return Button::make($meta['label'])
+                                ->icon($meta['icon'])
+                                ->method('changeStatus', ['id' => $this->application->id, 'status' => $key])
+                                ->confirm(__("Change status to :status?", ['status' => $meta['label']]))
+                                ->novalidate();
+                        })
+                        ->toArray()
+                ),
         ];
     }
 
@@ -170,14 +172,11 @@ class ApplicationViewScreen extends Screen
             Sight::make('jobListing.location', __('Location')),
             Sight::make('status', __('Status'))->render(function () {
                 $status = $this->application->status;
-                $color = match ($status) {
-                    'submitted' => 'info',
-                    'under review' => 'warning',
-                    'accepted' => 'success',
-                    'rejected' => 'danger',
-                    default => 'secondary',
-                };
-                return "<span class='badge bg-{$color} status-badge'>" . ucfirst($status) . "</span>";
+                $statuses = ApplicationStatus::all();
+                $meta = $statuses[$status] ?? null;
+                $label = $meta['label'] ?? ucfirst($status);
+                $color = $meta['color'] ?? 'secondary';
+                return "<span class='badge bg-{$color} status-badge'>{$label}</span>";
             }),
             // Fit status based on screening questions
             Sight::make('fit', __('Fit'))->render(function () {
