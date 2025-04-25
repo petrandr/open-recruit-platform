@@ -36,6 +36,8 @@ class JobApplication extends Model
         'github_profile',
         'how_heard',
         'submitted_at',
+        // Precomputed fit ratio (0 to 1)
+        'fit_ratio',
     ];
 
     /**
@@ -47,6 +49,7 @@ class JobApplication extends Model
         'rejection_sent' => 'boolean',
         'desired_salary' => 'decimal:2',
         'submitted_at' => 'datetime',
+        'fit_ratio' => 'float',
     ];
 
     /**
@@ -120,7 +123,7 @@ class JobApplication extends Model
     {
         return $this->hasOne(ApplicationTracking::class, 'application_id');
     }
-    
+
     /**
      * Calculate fit based on screening question answers.
      *
@@ -145,23 +148,40 @@ class JobApplication extends Model
                 }
             }
         }
-        $ratio = $total > 0 ? $meets / $total : 0.0;
-        if ($ratio >= 0.8) {
-            $fit = 'Good fit';
-            $fitClass = 'success';
-        } elseif ($ratio >= 0.5) {
-            $fit = 'Maybe';
-            $fitClass = 'warning';
-        } else {
-            $fit = 'Not a fit';
-            $fitClass = 'danger';
-        }
         return [
-            'fit'      => $fit,
-            'fitClass' => $fitClass,
-            'ratio'    => $ratio,
-            'total'    => $total,
-            'meets'    => $meets,
+            'radio' => $total > 0 ? $meets / $total : 0.0
         ];
+    }
+
+    /**
+     * Accessor for fit label based on stored fit_ratio.
+     *
+     * @return string
+     */
+    public function getFitAttribute(): string
+    {
+        $ratio = $this->fit_ratio ?? 0;
+        if ($ratio >= 0.8) {
+            return 'Good fit';
+        } elseif ($ratio >= 0.5) {
+            return 'Maybe';
+        }
+        return 'Not a fit';
+    }
+
+    /**
+     * Accessor for CSS class of fit label based on stored fit_ratio.
+     *
+     * @return string
+     */
+    public function getFitClassAttribute(): string
+    {
+        $ratio = $this->fit_ratio ?? 0;
+        if ($ratio >= 0.8) {
+            return 'success';
+        } elseif ($ratio >= 0.5) {
+            return 'warning';
+        }
+        return 'danger';
     }
 }

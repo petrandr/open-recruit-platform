@@ -46,10 +46,6 @@ class ApplicationViewScreen extends Screen
             'tracking',
             'comments.user',
         ]);
-        // Calculate fit status using model method
-        $fitData = $application->calculateFit();
-        $application->fit = $fitData['fit'];
-        $application->fitClass = $fitData['fitClass'];
         // Fetch other applications submitted by this candidate (exclude current)
         $otherApplications = $application->candidate
             ->applications()

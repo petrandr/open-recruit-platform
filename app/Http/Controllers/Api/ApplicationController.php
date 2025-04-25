@@ -103,6 +103,11 @@ class ApplicationController extends Controller
             $application->tracking()->create($utmData);
         }
 
+        // Calculate and store fit ratio based on screening question answers
+        $fitData = $application->calculateFit();
+        $application->fit_ratio = $fitData['ratio'];
+        $application->save();
+
         // Send notification to designated users, failures won't block response
         $notifyIds = $job->who_to_notify ?? [];
         if (! empty($notifyIds)) {
