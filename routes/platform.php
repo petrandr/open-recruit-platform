@@ -11,6 +11,8 @@ use App\Orchid\Screens\Examples\ExampleGridScreen;
 use App\Orchid\Screens\Examples\ExampleLayoutsScreen;
 use App\Orchid\Screens\Examples\ExampleScreen;
 use App\Orchid\Screens\Examples\ExampleTextEditorsScreen;
+use App\Orchid\Screens\MailLog\MailLogListScreen;
+use App\Orchid\Screens\MailLog\MailLogViewScreen;
 use App\Orchid\Screens\PlatformScreen;
 use App\Orchid\Screens\Role\RoleEditScreen;
 use App\Orchid\Screens\Role\RoleListScreen;
@@ -164,6 +166,19 @@ Route::screen('activity-logs/{id}', ActivityLogViewScreen::class)
     ->breadcrumbs(fn(Trail $trail, $id) => $trail
         ->parent('platform.activity.logs')
         ->push("#{$id}", route('platform.activity.log', $id)));
+
+
+Route::screen('mail-logs', MailLogListScreen::class)
+    ->name('platform.mail.logs')
+    ->breadcrumbs(fn(Trail $trail) => $trail
+        ->parent('platform.index')
+        ->push(__('Mail Logs'), route('platform.mail.logs')));
+
+Route::screen('mail-logs/{id}', MailLogViewScreen::class)
+    ->name('platform.mail.log')
+    ->breadcrumbs(fn(Trail $trail, $id) => $trail
+        ->parent('platform.mail.logs')
+        ->push("#{$id}", route('platform.mail.log', $id)));
 
 //// Example...
 //Route::screen('example', ExampleScreen::class)
