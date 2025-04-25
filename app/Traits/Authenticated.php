@@ -24,8 +24,8 @@ trait Authenticated
 
     protected function updateLastLogin(User $user): void
     {
-//        $user->last_login = now();
-//        $user->save();
+        $user->last_login_at = now();
+        $user->save();
     }
 
     protected function setSamlSession(Request $request): void
