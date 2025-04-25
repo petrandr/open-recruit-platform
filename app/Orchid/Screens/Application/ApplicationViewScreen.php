@@ -48,6 +48,7 @@ class ApplicationViewScreen extends Screen
             'jobListing.screeningQuestions',
             'tracking',
             'comments.user',
+            'statusLogs.user',
         ]);
         // Fetch other applications submitted by this candidate (exclude current)
         $otherApplications = $application->candidate
@@ -58,6 +59,7 @@ class ApplicationViewScreen extends Screen
         return [
             'application' => $application,
             'otherApplications' => $otherApplications,
+            'statusLogs' => $application->statusLogs,
         ];
     }
 
@@ -300,7 +302,17 @@ class ApplicationViewScreen extends Screen
                 ])
                     ->title(__('Comments'))
                     ->vertical(),
+                Layout::block([
+                    // Application progress (status history)
+                    Layout::view('partials.application-status-progress', [
+                        'created_at' => $this->application->created_at,
+                        'statusLogs' => $this->application->statusLogs,
+                    ]),
+                ])
+                    ->title(__('Application Progress'))
+                    ->vertical(),
             ],
+
         ])
             ->ratio('70/30');
         // CV preview modal

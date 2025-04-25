@@ -10,10 +10,29 @@ use Orchid\Screen\AsSource;
 use Orchid\Filters\Types\Where;
 use Orchid\Filters\Types\Like;
 use Orchid\Filters\Types\WhereDateStartEnd;
+use Illuminate\Support\Facades\Auth;
+use App\Models\ApplicationStatusLog;
 
 class JobApplication extends Model
 {
     use HasFactory, Filterable, AsSource;
+
+    /**
+     * Boot the model and listen for status changes to log them.
+     */
+    protected static function booted(): void
+    {
+        static::updated(function (JobApplication $application) {
+            if ($application->wasChanged('status')) {
+                ApplicationStatusLog::create([
+                    'application_id' => $application->id,
+                    'from_status' => $application->getOriginal('status'),
+                    'to_status' => $application->status,
+                    'changed_by' => Auth::id(),
+                ]);
+            }
+        });
+    }
 
     /**
      * Mass assignable attributes.
@@ -124,6 +143,14 @@ class JobApplication extends Model
     public function tracking()
     {
         return $this->hasOne(ApplicationTracking::class, 'application_id');
+    }
+    
+    /**
+     * Get all status logs for this application.
+     */
+    public function statusLogs()
+    {
+        return $this->hasMany(ApplicationStatusLog::class, 'application_id')->orderBy('created_at');
     }
 
     /**
