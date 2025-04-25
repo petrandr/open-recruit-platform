@@ -11,6 +11,7 @@ use Orchid\Screen\Actions\Link;
 use Orchid\Screen\TD;
 use Orchid\Screen\Actions\Button;
 use Orchid\Screen\Actions\ModalToggle;
+use Orchid\Screen\Actions\DropDown;
 use Orchid\Screen\Layouts\Modal as ModalLayout;
 use Orchid\Screen\Sight;
 use Illuminate\Http\Request;
@@ -101,26 +102,33 @@ class ApplicationViewScreen extends Screen
                 ->set('data-bs-toggle', 'modal')
                 ->set('data-bs-target', '#applicationCvModal')
                 ->set('data-application-id', $this->application->id),
-            // Allow resetting status to Submitted
-            Button::make(__('Submitted'))
-                ->icon('bs.calendar2-check')
-                ->method('changeStatus', ['id' => $this->application->id, 'status' => 'submitted'])
-                ->confirm(__('Are you sure you want to reset status to Submitted?'))
-                ->novalidate(),
-            Button::make(__('Under Review'))
-                ->icon('bs.hourglass-split')
-                ->method('changeStatus', ['id' => $this->application->id, 'status' => 'under review'])
-                ->confirm(__('Are you sure you want to mark this application as Under Review?'))
-                ->novalidate(),
-            Button::make(__('Accept'))
-                ->icon('bs.check2-circle')
-                ->method('changeStatus', ['id' => $this->application->id, 'status' => 'accepted'])
-                ->confirm(__('Are you sure you want to accept this application?'))
-                ->novalidate(),
-            ModalToggle::make(__('Reject'))
-                ->icon('bs.x-circle')
-                ->modal('rejectModal')
-                ->novalidate(),
+            // Group status actions under a dropdown
+            DropDown::make(__('Change Status'))
+                ->icon('bs.sliders')
+                ->list([
+                    Button::make(__('Submitted'))
+                        ->icon('bs.calendar2-check')
+                        ->method('changeStatus', ['id' => $this->application->id, 'status' => 'submitted'])
+                        ->confirm(__('Reset status to Submitted?'))
+                        ->novalidate(),
+
+                    Button::make(__('Under Review'))
+                        ->icon('bs.hourglass-split')
+                        ->method('changeStatus', ['id' => $this->application->id, 'status' => 'under review'])
+                        ->confirm(__('Mark application as Under Review?'))
+                        ->novalidate(),
+
+                    Button::make(__('Accept'))
+                        ->icon('bs.check2-circle')
+                        ->method('changeStatus', ['id' => $this->application->id, 'status' => 'accepted'])
+                        ->confirm(__('Accept this application?'))
+                        ->novalidate(),
+
+                    ModalToggle::make(__('Reject'))
+                        ->icon('bs.x-circle')
+                        ->modal('rejectModal')
+                        ->novalidate(),
+                ]),
         ];
     }
 
