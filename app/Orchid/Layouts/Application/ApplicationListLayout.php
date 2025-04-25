@@ -92,7 +92,12 @@ class ApplicationListLayout extends Table
                 }),
 
             TD::make('status', __('Status'))
-                ->filter(Input::make())
+                ->filter(TD::FILTER_SELECT, [
+                    'submitted'  => __('Submitted'),
+                    'under review'  => __('Under Review'),
+                    'accepted' => __('Accepted'),
+                    'rejected'   => __('Rejected'),
+                ])
                 ->sort()
                 ->render(function (JobApplication $application) {
                     $status = $application->status;
@@ -107,7 +112,14 @@ class ApplicationListLayout extends Table
                     return "<span class=\"badge bg-{$color} status-badge\">{$label}</span>";
                 }),
 
-            TD::make('is_a_fit', __('Is a Fit'))
+            // Sort and filter by stored fit_ratio (precomputed fit percentage)
+            TD::make('fit_ratio', __('Is a Fit'))
+                ->sort()
+                ->filter(TD::FILTER_SELECT, [
+                    'good'  => __('Good fit'),
+                    'maybe' => __('Maybe'),
+                    'not'   => __('Not a fit'),
+                ])
                 ->render(function (JobApplication $application) {
                     return "<span class=\"badge bg-{$application->fitClass} status-badge\">{$application->fit}</span>";
                 }),
@@ -137,18 +149,24 @@ class ApplicationListLayout extends Table
             TD::make(__('Actions'))
                 ->align(TD::ALIGN_CENTER)
                 ->width('100px')
-                ->render(fn(JobApplication $application) => DropDown::make()
-                    ->icon('bs.three-dots-vertical')
-                    ->list([
-                        Link::make(__('View'))
-                            ->icon('bs.eye')
-                            ->route('platform.applications.view', $application->id),
-                        Button::make(__('Anonymize'))
-                            ->icon('bs.eye-slash')
-                            ->confirm(__('Are you sure you want to anonymize this application? This will remove personal information.'))
-                            ->method('anonymizeApplication', ['id' => $application->id]),
-                    ])
-                ),
+                ->render(function (JobApplication $application) {
+                    // Include current filters in the view link so back retains them
+                    $params = array_merge(
+                        ['application' => $application->id],
+                        request()->query()
+                    );
+                    return DropDown::make()
+                        ->icon('bs.three-dots-vertical')
+                        ->list([
+                            Link::make(__('View'))
+                                ->icon('bs.eye')
+                                ->route('platform.applications.view', $params),
+                            Button::make(__('Anonymize'))
+                                ->icon('bs.eye-slash')
+                                ->confirm(__('Are you sure you want to anonymize this application? This will remove personal information.'))
+                                ->method('anonymizeApplication', ['id' => $application->id]),
+                        ]);
+                }),
         ];
     }
 }

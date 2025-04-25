@@ -90,10 +90,10 @@ class ApplicationViewScreen extends Screen
     public function commandBar(): iterable
     {
         return [
-            // Back link
+            // Back link (preserve filters)
             Link::make(__('Back to Applications'))
                 ->icon('bs.arrow-left')
-                ->route('platform.applications'),
+                ->route('platform.applications', request()->query()),
             // View CV modal trigger
             Link::make(__('View CV'))
                 ->icon('bs.file-earmark-text')

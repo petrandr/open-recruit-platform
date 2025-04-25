@@ -56,6 +56,17 @@ class ApplicationListScreen extends Screen
                 $q->where('title', 'ilike', "%{$jobTitle}%");
             });
         }
+        // Apply column filter for fit category if provided
+        if ($fitCategory = $request->input('filter.fit_ratio')) {
+            match ($fitCategory) {
+                'good'  => $query->where('fit_ratio', '>=', 0.8),
+                'maybe' => $query->where('fit_ratio', '>=', 0.5)->where('fit_ratio', '<', 0.8),
+                'not'   => $query->where('fit_ratio', '<', 0.5),
+                default => null,
+            };
+        }
+
+//        dd($query->toSql());
 
         $applications = $query->paginate();
 

@@ -82,6 +82,8 @@ class JobApplication extends Model
         'desired_salary',
         'city',
         'country',
+        // Precomputed fit ratio
+        'fit_ratio',
     ];
 
     /**
