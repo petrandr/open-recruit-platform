@@ -151,7 +151,7 @@ class JobApplication extends Model
             }
         }
         return [
-            'radio' => $total > 0 ? $meets / $total : 0.0
+            'ratio' => $total > 0 ? $meets / $total : 0.0
         ];
     }
 
