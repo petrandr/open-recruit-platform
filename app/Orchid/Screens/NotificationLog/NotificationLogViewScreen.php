@@ -90,13 +90,8 @@ class NotificationLogViewScreen extends Screen
             Layout::rows([
                 Label::make('notification.id')->title(__('ID')),
                 Label::make('notification.type')->title(__('Type')),
-                // Show actual notifiable (user/candidate) name
                 Label::make('notifiableName')->title(__('Notifiable')),
-                // JSON payload in readonly textarea
-                TextArea::make('dataStr')
-                    ->title(__('Data'))
-                    ->rows(10)
-                    ->readonly(),
+                Label::make('notification.data.message')->title(__('Notification Message')),
                 Label::make('notification.read_at')->title(__('Read At')),
                 Label::make('notification.created_at')->title(__('Created At')),
                 Label::make('notification.updated_at')->title(__('Updated At')),

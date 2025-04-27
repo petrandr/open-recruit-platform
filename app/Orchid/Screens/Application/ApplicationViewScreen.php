@@ -18,8 +18,9 @@ use Orchid\Screen\Sight;
 use Illuminate\Http\Request;
 use Orchid\Support\Facades\Toast;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Mail;
-use App\Mail\ApplicationRejectedMail;
+// use Illuminate\Support\Facades\Mail; // replaced by Notification
+// use App\Mail\ApplicationRejectedMail; // Mailable replaced by Notification
+use App\Notifications\ApplicationRejectedNotification;
 use Orchid\Screen\Fields\Input;
 use App\Models\ApplicationComment;
 use function PHPUnit\Framework\containsIdentical;
@@ -372,8 +373,10 @@ class ApplicationViewScreen extends Screen
         $application->update(['status' => 'rejected']);
         // Send rejection email if candidate email available and message provided
         if ($message !== '' && $application->candidate && $application->candidate->email) {
-            Mail::to($application->candidate->email)
-                ->send(new ApplicationRejectedMail($application, $message));
+            // Notify candidate via mail and database
+            $application->candidate->notify(
+                new ApplicationRejectedNotification($application, $message)
+            );
             // Mark email sent
             $application->update(['rejection_sent' => true]);
             Toast::info(__('Application rejected and email notification sent.'));

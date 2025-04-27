@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Orchid\Filters\Filterable;
+use Illuminate\Notifications\Notifiable;
 use Orchid\Screen\AsSource;
 use Orchid\Filters\Types\Where;
 use App\Orchid\Filters\Types\InsensitiveLike;
@@ -13,7 +14,7 @@ use Orchid\Filters\Types\WhereDateStartEnd;
 
 class Candidate extends Model
 {
-    use HasFactory, Filterable, AsSource;
+    use HasFactory, Filterable, AsSource, Notifiable;
 
     /**
      * Mass assignable attributes.
