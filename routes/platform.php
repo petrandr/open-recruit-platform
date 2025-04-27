@@ -167,19 +167,6 @@ Route::screen('activity-logs/{id}', ActivityLogViewScreen::class)
         ->parent('platform.activity.logs')
         ->push("#{$id}", route('platform.activity.log', $id)));
 
-
-Route::screen('mail-logs', MailLogListScreen::class)
-    ->name('platform.mail.logs')
-    ->breadcrumbs(fn(Trail $trail) => $trail
-        ->parent('platform.index')
-        ->push(__('Mail Logs'), route('platform.mail.logs')));
-
-Route::screen('mail-logs/{id}', MailLogViewScreen::class)
-    ->name('platform.mail.log')
-    ->breadcrumbs(fn(Trail $trail, $id) => $trail
-        ->parent('platform.mail.logs')
-        ->push("#{$id}", route('platform.mail.log', $id)));
-
 //// Example...
 //Route::screen('example', ExampleScreen::class)
 //    ->name('platform.example')

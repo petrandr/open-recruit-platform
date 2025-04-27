@@ -10,8 +10,6 @@ use Orchid\Platform\OrchidServiceProvider;
 use Orchid\Screen\Actions\Menu;
 use Orchid\Support\Color;
 use Illuminate\Routing\Router;
-use App\Orchid\Screens\MailLog\MailLogListScreen;
-use App\Orchid\Screens\MailLog\MailLogViewScreen;
 
 class PlatformProvider extends OrchidServiceProvider
 {
@@ -74,11 +72,6 @@ class PlatformProvider extends OrchidServiceProvider
                 ->permission('platform.activity-logs')
                 ->set('group', 'System')
                 ->divider(),
-            Menu::make(__('Mail & Notification Logs'))
-                ->icon('bs.envelope')
-                ->route('platform.mail.logs')
-                ->permission('platform.mail-logs')
-                ->set('group', 'System'),
 //
 //            Menu::make('Get Started')
 //                ->icon('bs.book')
@@ -138,27 +131,12 @@ class PlatformProvider extends OrchidServiceProvider
             ItemPermission::group(__('System'))
                 ->addPermission('platform.systems.roles', __('Roles'))
                 ->addPermission('platform.systems.users', __('Users'))
-                ->addPermission('platform.activity-logs', __('Activity Logs'))
-                ->addPermission('platform.mail-logs', __('Mail & Notification Logs')),
+                ->addPermission('platform.activity-logs', __('Activity Logs')),
             ItemPermission::group(__('Recruitment'))
                 ->addPermission('platform.jobs', __('Jobs'))
                 ->addPermission('platform.candidates', __('Candidates'))
                 ->addPermission('platform.applications', __('Applications')),
         ];
     }
-    /**
-     * Register the admin screen routes.
-     *
-     * @param Router $route
-     */
-    public function routes(Router $route): void
-    {
-        // Mail & Notification Logs List
-        $route->screen('mail-logs', MailLogListScreen::class)
-              ->name('platform.mail.logs');
 
-        // Mail & Notification Log Detail
-        $route->screen('mail-logs/{id}', MailLogViewScreen::class)
-              ->name('platform.mail.log');
-    }
 }
