@@ -13,6 +13,7 @@ use Orchid\Access\Impersonation;
 use App\Models\User;
 use Orchid\Screen\Action;
 use Orchid\Screen\Actions\Button;
+use Orchid\Screen\Actions\Link;
 use Orchid\Screen\Screen;
 use Orchid\Support\Color;
 use Orchid\Support\Facades\Layout;
@@ -57,6 +58,12 @@ class UserProfileScreen extends Screen
     public function commandBar(): iterable
     {
         return [
+            // Link to personal appointment calendars
+            Link::make(__('My Calendars'))
+                ->icon('bs.calendar')
+                ->route('platform.calendars')
+                ->canSee(auth()->user()->hasAccess('platform.calendars')),
+
             Button::make('Back to my account')
                 ->novalidate()
                 ->canSee(Impersonation::isSwitch())

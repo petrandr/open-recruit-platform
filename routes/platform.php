@@ -34,6 +34,8 @@ use App\Orchid\Screens\ActivityLog\ActivityLogListScreen;
 use App\Orchid\Screens\ActivityLog\ActivityLogViewScreen;
 use App\Orchid\Screens\NotificationLog\NotificationLogListScreen;
 use App\Orchid\Screens\NotificationLog\NotificationLogViewScreen;
+use App\Orchid\Screens\AppointmentCalendar\AppointmentCalendarListScreen;
+use App\Orchid\Screens\AppointmentCalendar\AppointmentCalendarEditScreen;
 
 /*
 |--------------------------------------------------------------------------
@@ -201,3 +203,23 @@ Route::screen('notification-logs/{id}', NotificationLogViewScreen::class)
 //Route::screen('/examples/cards', ExampleCardsScreen::class)->name('platform.example.cards');
 
 // Route::screen('idea', Idea::class, 'platform.screens.idea');
+// Platform > System > My Calendars
+Route::screen('calendars', AppointmentCalendarListScreen::class)
+    ->name('platform.calendars')
+    ->breadcrumbs(fn (Trail $trail) => $trail
+        ->parent('platform.index')
+        ->push(__('My Calendars'), route('platform.calendars')));
+
+// Platform > System > My Calendars > Create
+Route::screen('calendars/create', AppointmentCalendarEditScreen::class)
+    ->name('platform.calendars.create')
+    ->breadcrumbs(fn (Trail $trail) => $trail
+        ->parent('platform.calendars')
+        ->push(__('Add'), route('platform.calendars.create')));
+
+// Platform > System > My Calendars > Edit
+Route::screen('calendars/{calendar}/edit', AppointmentCalendarEditScreen::class)
+    ->name('platform.calendars.edit')
+    ->breadcrumbs(fn (Trail $trail, $calendar) => $trail
+        ->parent('platform.calendars')
+        ->push(optional($calendar)->name ?: __('Edit'), route('platform.calendars.edit', $calendar)));

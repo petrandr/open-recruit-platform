@@ -7,6 +7,7 @@ use Orchid\Filters\Types\Like;
 use Orchid\Filters\Types\Where;
 use Orchid\Filters\Types\WhereDateStartEnd;
 use Orchid\Platform\Models\User as Authenticatable;
+use App\Models\AppointmentCalendar;
 
 class User extends Authenticatable
 {
@@ -87,5 +88,15 @@ class User extends Authenticatable
     public function presenter()
     {
         return new \App\Orchid\Presenters\UserPresenter($this);
+    }
+
+    /**
+     * User has many appointment calendars.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function appointmentCalendars()
+    {
+        return $this->hasMany(AppointmentCalendar::class);
     }
 }
