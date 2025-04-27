@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Services\ActivityLogExcluder;
+use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Event;
@@ -28,10 +30,12 @@ class AppServiceProvider extends ServiceProvider
             Mail::alwaysTo(env('MAIL_DEV_ADDRESS'));
         }
 
+        $excluder = app(ActivityLogExcluder::class);
+
         // Listen to all Eloquent model create/update/delete events
-        Event::listen('eloquent.created: *', function (string $eventName, array $data) {
+        Event::listen('eloquent.created: *', function (string $eventName, array $data) use ($excluder) {
             $model = $data[0] ?? null;
-            if (! $model || $model instanceof Activity) {
+            if (! $model || $model instanceof Activity || $excluder->shouldExclude($model))  {
                 return;
             }
             \activity()
@@ -41,9 +45,9 @@ class AppServiceProvider extends ServiceProvider
                 ->log('created');
         });
 
-        Event::listen('eloquent.updated: *', function (string $eventName, array $data) {
+        Event::listen('eloquent.updated: *', function (string $eventName, array $data) use ($excluder) {
             $model = $data[0] ?? null;
-            if (! $model || $model instanceof Activity) {
+            if (! $model || $model instanceof Activity || $excluder->shouldExclude($model)) {
                 return;
             }
             \activity()
@@ -56,9 +60,9 @@ class AppServiceProvider extends ServiceProvider
                 ->log('updated');
         });
 
-        Event::listen('eloquent.deleted: *', function (string $eventName, array $data) {
+        Event::listen('eloquent.deleted: *', function (string $eventName, array $data) use ($excluder) {
             $model = $data[0] ?? null;
-            if (! $model || $model instanceof Activity) {
+            if (! $model || $model instanceof Activity || $excluder->shouldExclude($model)) {
                 return;
             }
             \activity()

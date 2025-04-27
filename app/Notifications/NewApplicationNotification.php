@@ -31,7 +31,7 @@ class NewApplicationNotification extends Notification
      */
     public function via($notifiable)
     {
-        return ['mail'];
+        return ['mail', 'database'];
     }
 
     /**
@@ -52,5 +52,25 @@ class NewApplicationNotification extends Notification
             ->line('Applicant: ' . $fullName)
             ->action('View Application', route('platform.applications.view', $this->application->id))
             ->line('Thank you for using our ATS system.');
+    }
+
+    /**
+     * Get the array representation of the notification.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(object $notifiable): array
+    {
+        $mailMessage = $this->toMail($notifiable);
+
+        $fullMessage = implode("\n", array_merge(
+            $mailMessage->introLines,
+            [$mailMessage->actionText . ' (' . $mailMessage->actionUrl . ')'],
+            $mailMessage->outroLines
+        ));
+
+        return [
+            'message' => $fullMessage,
+        ];
     }
 }

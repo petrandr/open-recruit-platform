@@ -49,4 +49,18 @@ return [
      * Laravel's database.default will be used instead.
      */
     'database_connection' => env('ACTIVITY_LOGGER_DB_CONNECTION'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Models to Exclude from Activity Logging
+    |--------------------------------------------------------------------------
+    |
+    | Here you can define the models that should not be logged by the
+    | custom activity logger in the AppServiceProvider.
+    |
+    */
+
+    'excluded_models' => [
+        \Illuminate\Notifications\DatabaseNotification::class,
+    ],
 ];
