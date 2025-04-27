@@ -72,6 +72,14 @@ class PlatformProvider extends OrchidServiceProvider
                 ->permission('platform.activity-logs')
                 ->set('group', 'System')
                 ->divider(),
+
+            // Platform > System > Notification Logs
+            Menu::make(__('Notification Logs'))
+                ->icon('bs.bell')
+                ->route('platform.notification.logs')
+                // Visible to users with activity logs permission
+                ->permission('platform.activity-logs')
+                ->set('group', 'System'),
 //
 //            Menu::make('Get Started')
 //                ->icon('bs.book')
@@ -131,7 +139,8 @@ class PlatformProvider extends OrchidServiceProvider
             ItemPermission::group(__('System'))
                 ->addPermission('platform.systems.roles', __('Roles'))
                 ->addPermission('platform.systems.users', __('Users'))
-                ->addPermission('platform.activity-logs', __('Activity Logs')),
+                ->addPermission('platform.activity-logs', __('Activity Logs'))
+                ->addPermission('platform.notification-logs', __('Notification Logs')),
             ItemPermission::group(__('Recruitment'))
                 ->addPermission('platform.jobs', __('Jobs'))
                 ->addPermission('platform.candidates', __('Candidates'))

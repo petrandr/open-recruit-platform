@@ -32,6 +32,8 @@ use App\Orchid\Screens\Candidate\CandidateListScreen;
 use App\Orchid\Screens\Candidate\CandidateViewScreen;
 use App\Orchid\Screens\ActivityLog\ActivityLogListScreen;
 use App\Orchid\Screens\ActivityLog\ActivityLogViewScreen;
+use App\Orchid\Screens\NotificationLog\NotificationLogListScreen;
+use App\Orchid\Screens\NotificationLog\NotificationLogViewScreen;
 
 /*
 |--------------------------------------------------------------------------
@@ -166,6 +168,20 @@ Route::screen('activity-logs/{id}', ActivityLogViewScreen::class)
     ->breadcrumbs(fn(Trail $trail, $id) => $trail
         ->parent('platform.activity.logs')
         ->push("#{$id}", route('platform.activity.log', $id)));
+
+// Platform > System > Notification Logs
+Route::screen('notification-logs', NotificationLogListScreen::class)
+    ->name('platform.notification.logs')
+    ->breadcrumbs(fn (Trail $trail) => $trail
+        ->parent('platform.index')
+        ->push(__('Notification Logs'), route('platform.notification.logs')));
+
+// Platform > System > Notification Log Detail
+Route::screen('notification-logs/{id}', NotificationLogViewScreen::class)
+    ->name('platform.notification.log')
+    ->breadcrumbs(fn (Trail $trail, $id) => $trail
+        ->parent('platform.notification.logs')
+        ->push("#{$id}", route('platform.notification.log', $id)));
 
 //// Example...
 //Route::screen('example', ExampleScreen::class)
