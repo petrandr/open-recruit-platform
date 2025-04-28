@@ -91,7 +91,7 @@ class NotificationLogViewScreen extends Screen
                 Label::make('notification.id')->title(__('ID')),
                 Label::make('notification.type')->title(__('Type')),
                 Label::make('notifiableName')->title(__('Notifiable')),
-                Label::make('notification.data.message')->title(__('Notification Message')),
+                Label::make('notification.data.template_body')->title(__('Notification Message')),
                 Label::make('notification.read_at')->title(__('Read At')),
                 Label::make('notification.created_at')->title(__('Created At')),
                 Label::make('notification.updated_at')->title(__('Updated At')),
