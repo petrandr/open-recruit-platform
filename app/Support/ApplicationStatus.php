@@ -55,4 +55,13 @@ class ApplicationStatus
             ],
         ];
     }
+
+    public static function allowedForInterview() {
+        return [
+            'submitted',
+            'under_review',
+            'shortlisted',
+            'interviewed'
+        ];
+    }
 }

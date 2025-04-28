@@ -18,9 +18,15 @@ use Orchid\Screen\Sight;
 use Illuminate\Http\Request;
 use Orchid\Support\Facades\Toast;
 use Illuminate\Support\Facades\Auth;
+
 // use Illuminate\Support\Facades\Mail; // replaced by Notification
 // use App\Mail\ApplicationRejectedMail; // Mailable replaced by Notification
 use App\Notifications\ApplicationRejectedNotification;
+use App\Notifications\ApplicationInterviewInvitationNotification;
+use Orchid\Screen\Fields\Select;
+use App\Models\NotificationTemplate;
+use App\Models\User;
+use App\Models\AppointmentCalendar;
 use Orchid\Screen\Fields\Input;
 use App\Models\ApplicationComment;
 use function PHPUnit\Framework\containsIdentical;
@@ -95,7 +101,7 @@ class ApplicationViewScreen extends Screen
      */
     public function commandBar(): iterable
     {
-        return [
+        $commands = [
             // Back link (preserve filters)
             Link::make(__('Back to Applications'))
                 ->icon('bs.arrow-left')
@@ -107,34 +113,43 @@ class ApplicationViewScreen extends Screen
                 ->set('data-bs-toggle', 'modal')
                 ->set('data-bs-target', '#applicationCvModal')
                 ->set('data-application-id', $this->application->id),
-            // Change status dropdown (centralized statuses)
-            DropDown::make(__('Change Status'))
-                ->icon('bs.sliders')
-                ->list(
-                    collect(ApplicationStatus::all())
-                        ->filter(function ($meta, $key) {
-                            return $key !== $this->application->status;
-                        })
-                        ->map(function ($meta, $key) {
-                            if ($key == $this->application->status) {
-                                return;
-                            }
-                            // Use modal for rejected status
-                            if ($key === 'rejected') {
-                                return ModalToggle::make($meta['label'])
-                                    ->icon($meta['icon'])
-                                    ->modal('rejectModal')
-                                    ->novalidate();
-                            }
-                            return Button::make($meta['label'])
-                                ->icon($meta['icon'])
-                                ->method('changeStatus', ['id' => $this->application->id, 'status' => $key])
-                                ->confirm(__("Change status to :status?", ['status' => $meta['label']]))
-                                ->novalidate();
-                        })
-                        ->toArray()
-                ),
         ];
+
+        if (in_array($this->application->status, ApplicationStatus::allowedForInterview())) {
+            $commands[] = ModalToggle::make(__('Schedule Interview'))
+                ->icon('bs.calendar-event')
+                ->modal('scheduleModal')
+                ->novalidate();
+        }
+
+        $commands[] = DropDown::make(__('Change Status'))
+            ->icon('bs.sliders')
+            ->list(
+                collect(ApplicationStatus::all())
+                    ->filter(function ($meta, $key) {
+                        return $key !== $this->application->status;
+                    })
+                    ->map(function ($meta, $key) {
+                        if ($key == $this->application->status) {
+                            return;
+                        }
+                        // Use modal for rejected status
+                        if ($key === 'rejected') {
+                            return ModalToggle::make($meta['label'])
+                                ->icon($meta['icon'])
+                                ->modal('rejectModal')
+                                ->novalidate();
+                        }
+                        return Button::make($meta['label'])
+                            ->icon($meta['icon'])
+                            ->method('changeStatus', ['id' => $this->application->id, 'status' => $key])
+                            ->confirm(__("Change status to :status?", ['status' => $meta['label']]))
+                            ->novalidate();
+                    })
+                    ->toArray()
+            );
+
+        return $commands;
     }
 
     /**
@@ -318,25 +333,102 @@ class ApplicationViewScreen extends Screen
             ->ratio('70/30');
         // CV preview modal
         $layouts[] = Layout::view('partials.application-cv-modal');
-        // Rejection modal: textarea and footer buttons
+        // Schedule Interview modal: select template, preview and modify before sending
+        // Fetch interview invitation templates and pre-render placeholders
+        $rawInterviewTemplates = NotificationTemplate::where('type', 'interview_invitation')
+            ->get(['id', 'subject', 'body']);
+        $interviewTemplates = [];
+        foreach ($rawInterviewTemplates as $tmpl) {
+            $interviewTemplates[] = [
+                'id' => $tmpl->id,
+                'subject' => $this->parseTemplate($tmpl->subject, $this->application),
+                'body' => $this->parseTemplate($tmpl->body, $this->application),
+            ];
+        }
+
+        if (in_array($this->application->status, ApplicationStatus::allowedForInterview())) {
+            $layouts[] = Layout::modal('scheduleModal', [
+                // First section: ID, template, subject
+                Layout::rows([
+                    Input::make('id')
+                        ->type('hidden')
+                        ->value($this->application->id),
+                    Select::make('template_id')
+                        ->id('schedule-template-select')
+                        ->title(__('Invitation Template'))
+                        ->options(NotificationTemplate::where('type', 'interview_invitation')->pluck('name', 'id'))
+                        ->empty(__('Select invitation template'), '')
+                        ->value('')
+                        ->required()
+                        ->set('data-templates', json_encode($interviewTemplates)),
+                    Input::make('subject')
+                        ->id('schedule-subject')
+                        ->title(__('Notification Subject'))
+                        ->required(),
+                ]),
+                // Calendar picker (user & calendar) appears here
+                Layout::view('partials.schedule-modal-calendar-picker'),
+                // Body message editor
+                Layout::rows([
+                    TextArea::make('body')
+                        ->id('schedule-body')
+                        ->title(__('Message'))
+                        ->rows(10)
+                        ->required(),
+                ]),
+                // Template-editor script (populates subject/body on template change)
+                Layout::view('partials.schedule-modal-template-editor', [
+                    'templates' => $interviewTemplates,
+                ]),
+                // Action buttons
+                Layout::view('partials.schedule-modal-buttons', [
+                    'application' => $this->application,
+                ]),
+            ])
+                ->title(__('Schedule Interview'))
+                ->withoutApplyButton()
+                ->withoutCloseButton()
+                ->staticBackdrop()
+                ->size(ModalLayout::SIZE_LG);
+        }
+        // Rejection modal: select template, preview and modify before sending
+        // Fetch rejection templates and pre-render placeholders for preview
+        $rawTemplates = NotificationTemplate::where('type', 'rejection')->get(['id', 'subject', 'body']);
+        $rejectTemplates = [];
+        foreach ($rawTemplates as $tmpl) {
+            $rejectTemplates[] = [
+                'id' => $tmpl->id,
+                'subject' => $this->parseTemplate($tmpl->subject, $this->application),
+                'body' => $this->parseTemplate($tmpl->body, $this->application),
+            ];
+        }
         $layouts[] = Layout::modal('rejectModal', [
             Layout::rows([
                 Input::make('id')
                     ->type('hidden')
                     ->value($this->application->id),
-                TextArea::make('rejection_message')
-                    ->title(__('Rejection Message'))
-                    ->rows(8)
-                    ->value(
-                        "Dear {$this->application->candidate->first_name} {$this->application->candidate->last_name},\n\n" .
-                        "Thanks for your interest in the {$this->application->jobListing->title} position at " . config('platform.organization') . ". " .
-                        "Unfortunately, we will not be moving forward with your application but we appreciate your time and interest in " . config('platform.organization') . ".\n\n" .
-                        "Regards,\n" . config('platform.organization')
-                    )
-                    ->class('form-control no-resize mw-100'),
+                Select::make('template_id')
+                    ->id('reject-template-select')
+                    ->title(__('Template'))
+                    ->options(NotificationTemplate::where('type', 'rejection')->pluck('name', 'id'))
+                    ->empty(__('Select a template'), '')
+                    ->value('')
+                    ->required(),
+                Input::make('subject')
+                    ->id('reject-subject')
+                    ->title(__('Subject'))
+                    ->required(),
+                TextArea::make('body')
+                    ->id('reject-body')
+                    ->title(__('Message'))
+                    ->rows(10)
+                    ->required(),
             ]),
             Layout::view('partials.reject-modal-buttons', [
                 'application' => $this->application,
+            ]),
+            Layout::view('partials.reject-modal-template-editor', [
+                'templates' => $rejectTemplates,
             ]),
         ])
             ->title(__('Reject Application'))
@@ -368,20 +460,86 @@ class ApplicationViewScreen extends Screen
     public function rejectWithEmail(Request $request): void
     {
         $application = JobApplication::with('candidate')->findOrFail($request->get('id'));
-        $message = trim($request->get('rejection_message', ''));
         // Update status
         $application->update(['status' => 'rejected']);
-        // Send rejection email if candidate email available and message provided
-        if ($message !== '' && $application->candidate && $application->candidate->email) {
-            // Notify candidate via mail and database
+        // Select template and notify
+        $templateId = $request->get('template_id');
+        $template = NotificationTemplate::findOrFail($templateId);
+        // Determine subject and body, allowing user overrides
+        $subject = $request->filled('subject')
+            ? $request->get('subject')
+            : $this->parseTemplate($template->subject, $application);
+        $body = $request->filled('body')
+            ? $request->get('body')
+            : $this->parseTemplate($template->body, $application);
+        if ($application->candidate && $application->candidate->email) {
             $application->candidate->notify(
-                new ApplicationRejectedNotification($application, $message)
+                new ApplicationRejectedNotification($application, $subject, $body)
             );
-            // Mark email sent
             $application->update(['rejection_sent' => true]);
-            Toast::info(__('Application rejected and email notification sent.'));
+            Toast::info(__('Application rejected and notification sent.'));
         } else {
             Toast::info(__('Application rejected.'));
         }
+    }
+
+    /**
+     * Schedule interview and optionally send invitation email.
+     *
+     * @param Request $request
+     */
+    public function scheduleInterviewWithEmail(Request $request): void
+    {
+        $application = JobApplication::with('candidate')->findOrFail($request->get('id'));
+        // Update status to interview scheduled
+        $application->update(['status' => 'interview_scheduled']);
+        // Select template and notify
+        $templateId = $request->get('template_id');
+        $template = NotificationTemplate::findOrFail($templateId);
+        $subject = $request->filled('subject')
+            ? $request->get('subject')
+            : $this->parseTemplate($template->subject, $application);
+        $body = $request->filled('body')
+            ? $request->get('body')
+            : $this->parseTemplate($template->body, $application);
+        // Replace appointment_calendar placeholder with selected calendar URL
+        if (str_contains($body, '{{appointment_calendar}}')) {
+            $calendarId = $request->get('calendar_id');
+            $calendar = AppointmentCalendar::findOrFail($calendarId);
+            $body = str_replace('{{appointment_calendar}}', $calendar->url, $body);
+        }
+        if ($application->candidate && $application->candidate->email) {
+            $application->candidate->notify(
+                new ApplicationInterviewInvitationNotification($application, $subject, $body)
+            );
+            Toast::info(__('Interview scheduled and invitation sent.'));
+        } else {
+            Toast::info(__('Interview scheduled.'));
+        }
+    }
+
+    /**
+     * Replace placeholders in template text.
+     *
+     * @param string $template
+     * @param JobApplication $application
+     * @return string
+     */
+    protected function parseTemplate(string $template, JobApplication $application): string
+    {
+        $candidate = $application->candidate;
+        $replacements = [
+            '{{application_id}}' => $application->id,
+            '{{job_title}}' => $application->jobListing->title,
+            '{{job_type}}' => $application->jobListing->job_type ?? '',
+            '{{job_location}}' => $application->jobListing->location ?? '',
+            '{{candidate_first_name}}' => $candidate->first_name ?? '',
+            '{{candidate_last_name}}' => $candidate->last_name ?? '',
+            '{{candidate_full_name}}' => trim(($candidate->first_name ?? '') . ' ' . ($candidate->last_name ?? '')),
+            '{{candidate_email}}' => $candidate->email ?? '',
+            '{{candidate_mobile_number}}' => $candidate->mobile_number ?? '',
+            '{{company}}' => config('platform.organization'),
+        ];
+        return str_replace(array_keys($replacements), array_values($replacements), $template);
     }
 }

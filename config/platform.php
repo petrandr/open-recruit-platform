@@ -366,4 +366,43 @@ return [
 
     'organization' => env('PLATFORM_ORGANIZATION'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Notification Template Types
+    |--------------------------------------------------------------------------
+    |
+    | Define the available types for notification templates. These will be
+    | exposed as options when creating or editing notification templates.
+    |
+    */
+    'notification_templates' => [
+        'types' => [
+            'rejection'             => 'Rejection',
+            'interview_invitation'  => 'Interview Invitation',
+        ],
+        /*
+        |--------------------------------------------------------------------------
+        | Notification Template Placeholders
+        |--------------------------------------------------------------------------
+        |
+        | List of available placeholders that can be used in notification templates.
+        | The keys correspond to placeholders in the template body (wrapped in {{ }}).
+        |
+        */
+        'placeholders' => [
+            'application_id'           => 'Application ID',
+            'job_title'                => 'Job Title',
+            'job_type'                 => 'Job Type',
+            'job_location'             => 'Job Location',
+            'candidate_first_name'     => 'Candidate First Name',
+            'candidate_last_name'      => 'Candidate Last Name',
+            'candidate_full_name'      => 'Candidate Full Name',
+            'candidate_email'          => 'Candidate Email',
+            'candidate_mobile_number'  => 'Candidate Mobile Number',
+            'company'                  => 'Company Name',
+            // Appointment calendar placeholder for scheduling interviews
+            'appointment_calendar'     => 'Appointment Calendar URL',
+        ],
+    ],
+
 ];

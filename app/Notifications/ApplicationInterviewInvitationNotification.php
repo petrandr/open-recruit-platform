@@ -7,7 +7,7 @@ use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\MailMessage;
 use App\Models\JobApplication;
 
-class ApplicationRejectedNotification extends Notification
+class ApplicationInterviewInvitationNotification extends Notification
 {
     use Queueable;
 
@@ -23,10 +23,6 @@ class ApplicationRejectedNotification extends Notification
     /**
      * Create a new notification instance.
      *
-     * @param JobApplication $application
-     * @param string $messageText
-     */
-    /**
      * @param JobApplication $application
      * @param string $templateSubject
      * @param string $templateBody
@@ -71,7 +67,6 @@ class ApplicationRejectedNotification extends Notification
     public function toArray($notifiable): array
     {
         $mailMessage = $this->toMail($notifiable);
-
         $fullMessage = implode("\n", array_merge(
             $mailMessage->introLines,
             [$mailMessage->actionText . ' (' . $mailMessage->actionUrl . ')'],

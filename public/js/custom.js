@@ -1,18 +1,13 @@
 // Centralized JavaScript for application behavior
-// Centralized JavaScript for modal, offcanvas, and comment behavior
+// Centralized JavaScript for modal, and comment behavior
 (function () {
-    // Spinner HTML for offcanvas loading
-    const spinnerHtml =
-        '<div class="d-flex justify-content-center align-items-center" style="height:100%;">' +
-        '<div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>' +
-        '</div>';
 
     // Initialize all custom behaviors
     function initCustom() {
         bindCommentEnter();
         bindCvModal();
-        bindOffcanvas();
         bindScreeningQuestions();
+        bindScheduleTemplateSelect();
     }
 
     // Bind Enter key to submit comments
@@ -113,46 +108,6 @@
         }
     }
 
-    // Bind offcanvas click handlers
-    function bindOffcanvas() {
-
-        if (window._offcanvasBound) return;
-        window._offcanvasBound = true;
-        document.addEventListener('click', function (event) {
-
-            // Find the closest element node
-            let el = event.target;
-            while (el && el.nodeType !== Node.ELEMENT_NODE) {
-                el = el.parentNode;
-            }
-            if (!el) return;
-            const trigger = el.closest('.application-offcanvas-trigger');
-            if (!trigger) return;
-            const offcanvasEl = document.getElementById('applicationOffcanvas');
-            if (!offcanvasEl) return;
-
-            const id = trigger.getAttribute('data-id');
-            if (!id) return;
-
-            const urlTemplate = offcanvasEl.getAttribute('data-details-url-template');
-            const url = urlTemplate.replace('__ID__', id);
-            const off = new window.Bootstrap.Offcanvas(offcanvasEl);
-
-            off.show();
-            const body = offcanvasEl.querySelector('.offcanvas-body');
-            body.innerHTML = spinnerHtml;
-            fetch(url)
-                .then(r => r.text())
-                .then(html => {
-                    console.log(body);
-                    body.innerHTML = html;
-                })
-                .catch(err => {
-                    body.innerHTML = '<p class="text-danger">Failed to load details.</p>';
-                });
-        });
-    }
-
     // Bind dynamic screening questions add/remove/type logic
     function bindScreeningQuestions() {
         const container = document.getElementById('screening-questions-container');
@@ -201,6 +156,80 @@
             }
         });
     }
+
+    // Bind schedule template selection to populate subject/body
+    function bindScheduleTemplateSelect() {
+        var select = document.getElementById('schedule-template-select');
+        if (!select || select._bound) return;
+        select._bound = true;
+        var templates = [];
+        try {
+            templates = JSON.parse(select.getAttribute('data-templates') || '[]');
+        } catch (e) {
+            console.error('Failed to parse schedule templates JSON', e);
+        }
+        var subjectInput = document.getElementById('schedule-subject');
+        var bodyTextarea = document.getElementById('schedule-body');
+        select.addEventListener('change', function () {
+            var found = templates.find(function (t) {
+                return t.id == select.value;
+            });
+            if (subjectInput) subjectInput.value = found ? found.subject : '';
+            if (bodyTextarea) {
+                bodyTextarea.value = found ? found.body : '';
+                bodyTextarea.dispatchEvent(new Event('input'));
+            }
+        });
+    }
+
+    // Reset schedule modal form
+    window.resetScheduleModalForm = function () {
+        var form = document.getElementById('screen-modal-form-scheduleModal');
+        if (!form) return;
+        form.reset();
+        // Clear template select
+        var templateSelect = document.getElementById('schedule-template-select');
+        if (templateSelect) {
+            templateSelect.value = '';
+            // Trigger change so subject/body clear too
+            templateSelect.dispatchEvent(new Event('change'))
+        }
+        // Clear dynamic elements
+        var bodyEl = document.getElementById('schedule-body');
+        if (bodyEl) {
+            bodyEl.value = '';
+            bodyEl.dispatchEvent(new Event('input'));
+        }
+
+        var subjectInput = document.getElementById('schedule-subject');
+        if (subjectInput) subjectInput.value = '';
+        var userSelect = document.getElementById('schedule-user-select');
+        if (userSelect) {
+            userSelect.value = '';
+            const event = new Event('change', { bubbles: true });
+            userSelect.dispatchEvent(event);
+        }
+        var calSelect = document.getElementById('schedule-calendar-select');
+        if (calSelect) {
+            calSelect.innerHTML = '<option value="">' + (calSelect.querySelector('option')?.textContent || '') + '</option>';
+            calSelect.disabled = true;
+        }
+    };
+
+    // Placeholder insertion function
+    window.appendPlaceholderToTextarea = function (placeholder) {
+        var textarea = document.getElementById('template-body');
+        if (!textarea) {
+            return;
+        }
+        var start = textarea.selectionStart;
+        var end = textarea.selectionEnd;
+        var text = textarea.value;
+        textarea.value = text.substring(0, start) + placeholder + text.substring(end);
+        var newPos = start + placeholder.length;
+        textarea.setSelectionRange(newPos, newPos);
+        textarea.focus();
+    };
 
     // Run on full page load and after Turbo navigations
     document.addEventListener('DOMContentLoaded', initCustom);

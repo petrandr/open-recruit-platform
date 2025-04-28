@@ -22,7 +22,7 @@ class ApplicationDetailController extends Controller
             'answers.question',
             'jobListing.screeningQuestions',
         ]);
-        // Return a concise summary for the offcanvas
+        // Return a concise summary for the
         return view('partials.application-summary', [
             'application' => $application,
         ]);

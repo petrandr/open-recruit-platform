@@ -53,6 +53,12 @@ class PlatformProvider extends OrchidServiceProvider
                 ->permission('platform.applications')
                 ->set('group', 'Recruitment'),
 
+            Menu::make(__('My Calendars'))
+                ->icon('bs.calendar')
+                ->route('platform.calendars')
+                ->permission('platform.calendars')
+                ->set('group', 'Recruitment'),
+
             Menu::make(__('Users'))
                 ->icon('bs.people')
                 ->route('platform.systems.users')
@@ -70,8 +76,7 @@ class PlatformProvider extends OrchidServiceProvider
                 ->icon('bs.clock-history')
                 ->route('platform.activity.logs')
                 ->permission('platform.activity-logs')
-                ->set('group', 'System')
-                ->divider(),
+                ->set('group', 'System'),
 
             // Platform > System > Notification Logs
             Menu::make(__('Notification Logs'))
@@ -80,6 +85,13 @@ class PlatformProvider extends OrchidServiceProvider
                 // Visible to users with activity logs permission
                 ->permission('platform.activity-logs')
                 ->set('group', 'System'),
+
+            Menu::make(__('Notification Templates'))
+                ->icon('bs.card-list')
+                ->route('platform.notification.templates')
+                ->permission('platform.notification.templates')
+                ->set('group', 'System')
+                ->divider(),
 
 //
 //            Menu::make('Get Started')
@@ -142,6 +154,7 @@ class PlatformProvider extends OrchidServiceProvider
                 ->addPermission('platform.systems.users', __('Users'))
                 ->addPermission('platform.activity-logs', __('Activity Logs'))
                 ->addPermission('platform.notification-logs', __('Notification Logs'))
+                ->addPermission('platform.notification.templates', __('Notification Templates'))
                 ->addPermission('platform.calendars', __('Calendars')),
             ItemPermission::group(__('Recruitment'))
                 ->addPermission('platform.jobs', __('Jobs'))

@@ -34,18 +34,17 @@ class ApplicationListLayout extends Table
         return [
             TD::make('id', __('ID'))
                 ->sort()
-                ->render(fn(JobApplication $application) => $application->id),
+                ->render(function(JobApplication $application) {
+                    return Link::make((string) $application->id)
+                        ->route('platform.applications.view', $application);
+                }),
 
             TD::make('candidate', __('Candidate'))
                 ->filter(Input::make())
                 ->render(function (JobApplication $application) {
                     $name = $application->candidate->first_name . ' ' . $application->candidate->last_name;
-                    // Trigger offcanvas summary when clicking on the candidate name
-                    return sprintf(
-                        '<span class="application-offcanvas-trigger" data-id="%d" style="cursor:pointer;">%s</span>',
-                        $application->id,
-                        e($name)
-                    );
+                    return Link::make($name)
+                        ->route('platform.candidates.view', $application->candidate);
                 }),
 
             TD::make('job_title', 'Job Title')
