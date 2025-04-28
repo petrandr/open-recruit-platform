@@ -35,8 +35,13 @@ class ApplicationListLayout extends Table
             TD::make('id', __('ID'))
                 ->sort()
                 ->render(function(JobApplication $application) {
+                    // Include current filters in the view link so back retains them
+                    $params = array_merge(
+                        ['application' => $application->id],
+                        request()->query()
+                    );
                     return Link::make((string) $application->id)
-                        ->route('platform.applications.view', $application);
+                        ->route('platform.applications.view', $params);
                 }),
 
             TD::make('candidate', __('Candidate'))
