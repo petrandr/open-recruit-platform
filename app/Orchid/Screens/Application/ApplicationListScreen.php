@@ -11,6 +11,11 @@ use Illuminate\Http\Request;
 use Orchid\Support\Facades\Layout;
 use Orchid\Screen\Screen;
 use Orchid\Support\Facades\Toast;
+use App\Models\NotificationTemplate;
+use Orchid\Screen\Fields\Select;
+use Orchid\Screen\Fields\Input;
+use Orchid\Screen\Fields\TextArea;
+use Orchid\Screen\Layouts\Modal as ModalLayout;
 
 class ApplicationListScreen extends Screen
 {
@@ -106,6 +111,36 @@ class ApplicationListScreen extends Screen
             ApplicationListLayout::class,
             // Modal for CV preview
             Layout::view('partials.application-cv-modal'),
+            // Rejection modal (async)
+            Layout::modal('rejectModal', [
+                Layout::rows([
+                    Input::make('id')
+                        ->type('hidden'),
+                    Select::make('template_id')
+                        ->id('reject-template-select')
+                        ->title(__('Template'))
+                        ->options(NotificationTemplate::where('type', 'rejection')->pluck('name', 'id'))
+                        ->empty(__('Select a template'), '')
+                        ->required(),
+                    Input::make('subject')
+                        ->id('reject-subject')
+                        ->title(__('Subject'))
+                        ->required(),
+                    TextArea::make('body')
+                        ->id('reject-body')
+                        ->title(__('Message'))
+                        ->rows(10)
+                        ->required(),
+                ]),
+                Layout::view('partials.reject-modal-buttons'),
+                Layout::view('partials.reject-modal-template-editor'),
+            ])
+                ->async('asyncRejectModal')
+                ->title(__('Reject Application'))
+                ->withoutApplyButton()
+                ->withoutCloseButton()
+                ->staticBackdrop()
+                ->size(ModalLayout::SIZE_LG),
         ];
     }
 
@@ -120,7 +155,6 @@ class ApplicationListScreen extends Screen
         $application = JobApplication::with('candidate')->findOrFail($request->get('id'));
         // Anonymize candidate personal info
         if ($application->candidate) {
-            // Replace personal info with placeholders
             $application->candidate->update([
                 'first_name' => 'Anonymous',
                 'last_name' => 'Applicant',
@@ -135,5 +169,54 @@ class ApplicationListScreen extends Screen
             'how_heard' => '',
         ]);
         Toast::info('Application personal data was anonymized.');
+    }
+
+    /**
+     * Load modal data for rejecting an application.
+     *
+     * @param JobApplication $application
+     * @return array<string, mixed>
+     */
+    public function asyncRejectModal(JobApplication $application): array
+    {
+        $application->load(['jobListing', 'candidate']);
+        $raw = NotificationTemplate::where('type', 'rejection')->get(['id', 'subject', 'body']);
+        $templates = [];
+        foreach ($raw as $tmpl) {
+            $templates[] = [
+                'id' => $tmpl->id,
+                'subject' => $this->parseTemplate($tmpl->subject, $application),
+                'body' => $this->parseTemplate($tmpl->body, $application),
+            ];
+        }
+        return [
+            'application' => $application,
+            'templates' => $templates,
+        ];
+    }
+
+    /**
+     * Parse template placeholders into actual values.
+     *
+     * @param string $template
+     * @param JobApplication $application
+     * @return string
+     */
+    protected function parseTemplate(string $template, JobApplication $application): string
+    {
+        $candidate = $application->candidate;
+        $replacements = [
+            '{{application_id}}' => $application->id,
+            '{{job_title}}' => $application->jobListing->title,
+            '{{job_type}}' => $application->jobListing->job_type ?? '',
+            '{{job_location}}' => $application->jobListing->location ?? '',
+            '{{candidate_first_name}}' => $candidate->first_name ?? '',
+            '{{candidate_last_name}}' => $candidate->last_name ?? '',
+            '{{candidate_full_name}}' => trim(($candidate->first_name ?? '') . ' ' . ($candidate->last_name ?? '')),
+            '{{candidate_email}}' => $candidate->email ?? '',
+            '{{candidate_mobile_number}}' => $candidate->mobile_number ?? '',
+            '{{company}}' => config('platform.organization'),
+        ];
+        return str_replace(array_keys($replacements), array_values($replacements), $template);
     }
 }

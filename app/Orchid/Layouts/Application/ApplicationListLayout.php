@@ -14,6 +14,7 @@ use Orchid\Screen\Actions\Button;
 use Orchid\Screen\Components\Cells\DateTimeSplit;
 use Orchid\Screen\Actions\DropDown;
 use Orchid\Screen\Actions\Link;
+use Orchid\Screen\Actions\ModalToggle;
 
 class ApplicationListLayout extends Table
 {
@@ -164,6 +165,11 @@ class ApplicationListLayout extends Table
                                 ->icon('bs.eye-slash')
                                 ->confirm(__('Are you sure you want to anonymize this application? This will remove personal information.'))
                                 ->method('anonymizeApplication', ['id' => $application->id]),
+                            // Reject application via modal
+                            ModalToggle::make(__('Reject'))
+                                ->icon('bs.x-circle')
+                                ->modal('rejectModal')
+                                ->asyncParameters(['application' => $application->id]),
                         ]);
                 }),
         ];
