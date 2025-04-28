@@ -16,6 +16,7 @@ use Orchid\Screen\Fields\Select;
 use Orchid\Screen\Fields\Input;
 use Orchid\Screen\Fields\TextArea;
 use Orchid\Screen\Layouts\Modal as ModalLayout;
+use App\Notifications\ApplicationRejectedNotification;
 
 class ApplicationListScreen extends Screen
 {
@@ -218,5 +219,49 @@ class ApplicationListScreen extends Screen
             '{{company}}' => config('platform.organization'),
         ];
         return str_replace(array_keys($replacements), array_values($replacements), $template);
+    }
+
+    /**
+     * Change application status (used for rejecting only).
+     *
+     * @param Request $request
+     */
+    public function changeStatus(Request $request): void
+    {
+        $application = JobApplication::findOrFail($request->get('id'));
+        $status = $request->get('status');
+        $application->update(['status' => $status]);
+        Toast::info(__('Application status changed to :status', ['status' => ucfirst($status)]));
+    }
+
+    /**
+     * Reject application and optionally send rejection email.
+     *
+     * @param Request $request
+     */
+    public function rejectWithEmail(Request $request): void
+    {
+        $application = JobApplication::with('candidate')->findOrFail($request->get('id'));
+        // Update status to rejected
+        $application->update(['status' => 'rejected']);
+        // Fetch template
+        $template = NotificationTemplate::findOrFail($request->get('template_id'));
+        // Determine subject and body, allow overrides
+        $subject = $request->filled('subject')
+            ? $request->get('subject')
+            : $this->parseTemplate($template->subject, $application);
+        $body = $request->filled('body')
+            ? $request->get('body')
+            : $this->parseTemplate($template->body, $application);
+        // Send notification if email present
+        if ($application->candidate && $application->candidate->email) {
+            $application->candidate->notify(
+                new ApplicationRejectedNotification($application, $subject, $body)
+            );
+            $application->update(['rejection_sent' => true]);
+            Toast::info(__('Application rejected and notification sent.'));
+        } else {
+            Toast::info(__('Application rejected.'));
+        }
     }
 }

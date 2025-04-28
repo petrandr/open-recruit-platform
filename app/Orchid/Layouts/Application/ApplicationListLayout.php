@@ -155,22 +155,25 @@ class ApplicationListLayout extends Table
                         ['application' => $application->id],
                         request()->query()
                     );
+                    $options = [
+                        Link::make(__('View'))
+                            ->icon('bs.eye')
+                            ->route('platform.applications.view', $params),
+                        Button::make(__('Anonymize'))
+                            ->icon('bs.eye-slash')
+                            ->confirm(__('Are you sure you want to anonymize this application? This will remove personal information.'))
+                            ->method('anonymizeApplication', ['id' => $application->id]),
+                    ];
+
+                    if (!in_array($application->status,['rejected'])) {
+                        $options[] = ModalToggle::make(__('Reject'))
+                            ->icon('bs.x-circle')
+                            ->modal('rejectModal')
+                            ->asyncParameters(['application' => $application->id]);
+                    }
                     return DropDown::make()
                         ->icon('bs.three-dots-vertical')
-                        ->list([
-                            Link::make(__('View'))
-                                ->icon('bs.eye')
-                                ->route('platform.applications.view', $params),
-                            Button::make(__('Anonymize'))
-                                ->icon('bs.eye-slash')
-                                ->confirm(__('Are you sure you want to anonymize this application? This will remove personal information.'))
-                                ->method('anonymizeApplication', ['id' => $application->id]),
-                            // Reject application via modal
-                            ModalToggle::make(__('Reject'))
-                                ->icon('bs.x-circle')
-                                ->modal('rejectModal')
-                                ->asyncParameters(['application' => $application->id]),
-                        ]);
+                        ->list($options);
                 }),
         ];
     }
