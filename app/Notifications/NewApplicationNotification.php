@@ -70,7 +70,7 @@ class NewApplicationNotification extends Notification
         ));
 
         return [
-            'message' => $fullMessage,
+            'template_body' => $fullMessage,
         ];
     }
 }

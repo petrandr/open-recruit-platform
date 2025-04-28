@@ -70,19 +70,10 @@ class ApplicationRejectedNotification extends Notification
      */
     public function toArray($notifiable): array
     {
-        $mailMessage = $this->toMail($notifiable);
-
-        $fullMessage = implode("\n", array_merge(
-            $mailMessage->introLines,
-            [$mailMessage->actionText . ' (' . $mailMessage->actionUrl . ')'],
-            $mailMessage->outroLines
-        ));
-
         return [
             'application_id'   => $this->application->id,
             'template_subject' => $this->templateSubject,
             'template_body'    => $this->templateBody,
-            'message'          => $fullMessage,
         ];
     }
 }
