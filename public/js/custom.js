@@ -4,10 +4,30 @@
 
     // Initialize all custom behaviors
     function initCustom() {
+        console.log('load');
         bindCommentEnter();
         bindCvModal();
         bindScreeningQuestions();
         bindScheduleTemplateSelect();
+        bindCKEditor();
+    }
+
+    function bindCKEditor() {
+        document.querySelectorAll('.js-ckeditor').forEach(el => {
+            // skip if already initialized
+            if (el.dataset.ckeditorInitialized) return;
+
+            ClassicEditor.create(el)
+                .then(editor => {
+                    // mark as done so we don't re‐init on turbo:load
+                    el.dataset.ckeditorInitialized = 'true';
+                    // remove the inline "display:none" that CKEditor just applied
+                    el.style.removeProperty('display');
+                    // add your utility class instead
+                    el.classList.add('d-none');
+                })
+                .catch(console.error);
+        });
     }
 
     // Bind Enter key to submit comments
@@ -206,7 +226,7 @@
         var userSelect = document.getElementById('schedule-user-select');
         if (userSelect) {
             userSelect.value = '';
-            const event = new Event('change', { bubbles: true });
+            const event = new Event('change', {bubbles: true});
             userSelect.dispatchEvent(event);
         }
         var calSelect = document.getElementById('schedule-calendar-select');
@@ -235,5 +255,5 @@
     document.addEventListener('DOMContentLoaded', initCustom);
     document.addEventListener('turbo:load', initCustom);
     // Initial binding in case DOMContentLoaded has already fired
-    initCustom();
+    // initCustom();
 })();

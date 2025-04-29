@@ -86,6 +86,10 @@ class JobListingEditScreen extends Screen
                 ->method('removeJob')
                 ->canSee($this->job->exists && $this->job->applications_count === 0)
                 ->confirm(__('Are you sure you want to delete this job position?')),
+            Button::make(__('Save'))
+                ->icon('bs.check-circle')
+                ->method('saveJob')
+                ->canSee(!$this->job->exists),
         ];
     }
 

@@ -4,33 +4,31 @@ declare(strict_types=1);
 
 namespace App\Orchid\Layouts\JobListing;
 
+use App\Orchid\Fields\Ckeditor;
+use Orchid\Screen\Field;
 use Orchid\Screen\Layouts\Rows;
-use Orchid\Screen\Fields\Quill;
-use Orchid\Screen\Fields\TextArea;
 
 class JobListingDetailedLayout extends Rows
 {
     /**
      * Define the detailed fields for job responsibilities, requirements, and perks.
      *
-     * @return \Orchid\Screen\Field[]
+     * @return Field[]
      */
     public function fields(): array
     {
         return [
-            Quill::make('job.responsibilities')
-                ->title(__('Responsibilities'))
-                ->required(),
+            Ckeditor::make('job.responsibilities')
+                ->title(__('Responsibilities')),
 
-            Quill::make('job.requirements')
-                ->title(__('Requirements'))
-                ->required(),
+            Ckeditor::make('job.requirements')
+                ->title(__('Requirements')),
 
-            Quill::make('job.bonus')
+            Ckeditor::make('job.bonus')
                 ->title(__('Bonus'))
                 ->placeholder(__('Optional bonuses')),
 
-            Quill::make('job.benefits')
+            Ckeditor::make('job.benefits')
                 ->title(__('Benefits'))
                 ->placeholder(__('Optional benefits')),
         ];

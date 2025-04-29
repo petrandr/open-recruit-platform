@@ -158,6 +158,7 @@ return [
         'scripts'     => [
             // Load centralized custom admin scripts
             '/js/custom.js',
+            'https://cdn.ckeditor.com/ckeditor5/35.3.0/classic/ckeditor.js'
         ],
     ],
 
