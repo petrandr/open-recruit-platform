@@ -75,12 +75,11 @@
                 }
             }
 
-            document.addEventListener('DOMContentLoaded', function () {
                 var btn = document.getElementById('schedule-send-confirm-btn');
                 if (btn) {
                     btn.addEventListener('click', confirmSchedule);
                 }
-            });
+
         })();
     </script>
 </div>
