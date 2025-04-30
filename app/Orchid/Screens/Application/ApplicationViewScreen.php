@@ -414,11 +414,10 @@ class ApplicationViewScreen extends Screen
                     ->id('reject-subject')
                     ->title(__('Subject'))
                     ->required(),
-                TextArea::make('body')
+                Ckeditor::make('body')
                     ->id('reject-body')
                     ->title(__('Message'))
                     ->rows(10)
-                    ->required(),
             ]),
             Layout::view('partials.reject-modal-buttons', [
                 'application' => $this->application,

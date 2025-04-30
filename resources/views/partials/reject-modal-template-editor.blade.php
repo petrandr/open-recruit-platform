@@ -1,5 +1,5 @@
 <script>
-    (function() {
+    (function () {
 
         // Preload templates data as JSON array
         var templates = @json($templates);
@@ -9,18 +9,18 @@
         if (!select || !subjectInput || !bodyTextarea) {
             return;
         }
-        select.addEventListener('change', function() {
+        select.addEventListener('change', function () {
 
             var id = this.value;
-            var found = templates.find(function(t) {
+            var found = templates.find(function (t) {
                 return t.id == id;
             });
-            if (found) {
-                subjectInput.value = found.subject;
-                bodyTextarea.value = found.body;
+
+            subjectInput.value = found ? found.subject : '';
+            if (bodyTextarea.matches('.js-ckeditor')) {
+                CK_EDITORS.get(bodyTextarea.id).setData(found ? found.body : '');
             } else {
-                subjectInput.value = '';
-                bodyTextarea.value = '';
+                bodyTextarea.value = found ? found.body : '';
             }
         });
     })();

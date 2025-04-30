@@ -59,7 +59,7 @@ class ApplicationRejectedNotification extends Notification
     {
         return (new MailMessage)
             ->subject($this->templateSubject)
-            ->view('emails.generic', ['body' => $this->templateBody]);
+            ->view('emails.generic_html', ['body' => $this->templateBody]);
     }
 
     /**

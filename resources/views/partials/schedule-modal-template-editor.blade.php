@@ -1,7 +1,7 @@
 <script>
-    (function() {
+    (function () {
         var templates = @json($templates);
-        document.addEventListener('change', function(e) {
+        document.addEventListener('change', function (e) {
             var select = e.target;
             if (select.id !== 'schedule-template-select') {
                 return;
@@ -11,7 +11,9 @@
             if (!subjectInput || !bodyTextarea) {
                 return;
             }
-            var found = templates.find(function(t) { return t.id == select.value; });
+            var found = templates.find(function (t) {
+                return t.id == select.value;
+            });
             subjectInput.value = found ? found.subject : '';
             if (bodyTextarea.matches('.js-ckeditor')) {
                 CK_EDITORS.get(bodyTextarea.id).setData(found ? found.body : '');
