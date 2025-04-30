@@ -2,6 +2,7 @@
 
 namespace App\Orchid\Screens\NotificationTemplate;
 
+use App\Orchid\Fields\Ckeditor;
 use Orchid\Screen\Screen;
 use Illuminate\Http\Request;
 use App\Models\NotificationTemplate;
@@ -69,12 +70,11 @@ class NotificationTemplateEditScreen extends Screen
                         ->title(__('Subject'))
                         ->required(),
 
-                    TextArea::make('template.body')
+                    Ckeditor::make('template.body')
                         ->id('template-body')
                         ->title(__('Body'))
                         ->rows(10)
                         ->placeholder("Dear {{candidate_first_name}} {{candidate_last_name}},\n\nWe regret to inform you that your application (#{{application_id}}) for {{job_title}} has been rejected.\n\nRegards,\n{{company}}")
-                        ->required(),
                 ]),
                 Layout::view('partials.notification-template-placeholders'),
             ])

@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Orchid\Screens\Application;
 
 use App\Models\JobApplication;
+use App\Orchid\Fields\Ckeditor;
 use App\Support\ApplicationStatus;
 use Orchid\Screen\Fields\TextArea;
 use Orchid\Screen\Screen;
@@ -19,17 +20,12 @@ use Illuminate\Http\Request;
 use Orchid\Support\Facades\Toast;
 use Illuminate\Support\Facades\Auth;
 
-// use Illuminate\Support\Facades\Mail; // replaced by Notification
-// use App\Mail\ApplicationRejectedMail; // Mailable replaced by Notification
 use App\Notifications\ApplicationRejectedNotification;
 use App\Notifications\ApplicationInterviewInvitationNotification;
 use Orchid\Screen\Fields\Select;
 use App\Models\NotificationTemplate;
-use App\Models\User;
 use App\Models\AppointmentCalendar;
 use Orchid\Screen\Fields\Input;
-use App\Models\ApplicationComment;
-use function PHPUnit\Framework\containsIdentical;
 
 class ApplicationViewScreen extends Screen
 {
@@ -370,7 +366,7 @@ class ApplicationViewScreen extends Screen
                 Layout::view('partials.schedule-modal-calendar-picker'),
                 // Body message editor
                 Layout::rows([
-                    TextArea::make('body')
+                    Ckeditor::make('body')
                         ->id('schedule-body')
                         ->title(__('Message'))
                         ->rows(10)

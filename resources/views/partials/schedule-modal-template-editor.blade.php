@@ -13,7 +13,11 @@
             }
             var found = templates.find(function(t) { return t.id == select.value; });
             subjectInput.value = found ? found.subject : '';
-            bodyTextarea.value = found ? found.body : '';
+            if (bodyTextarea.matches('.js-ckeditor')) {
+                CK_EDITORS.get(bodyTextarea.id).setData(found ? found.body : '');
+            } else {
+                bodyTextarea.value = found ? found.body : '';
+            }
             // Trigger calendar picker update
             bodyTextarea.dispatchEvent(new Event('input'));
         });
