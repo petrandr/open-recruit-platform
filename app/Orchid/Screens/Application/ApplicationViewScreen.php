@@ -6,6 +6,7 @@ namespace App\Orchid\Screens\Application;
 use App\Models\JobApplication;
 use App\Orchid\Fields\Ckeditor;
 use App\Support\ApplicationStatus;
+use App\Models\Interview;
 use Orchid\Screen\Fields\TextArea;
 use Orchid\Screen\Screen;
 use Orchid\Support\Facades\Layout;
@@ -486,6 +487,11 @@ class ApplicationViewScreen extends Screen
     public function scheduleInterviewWithEmail(Request $request): void
     {
         $application = JobApplication::with('candidate')->findOrFail($request->get('id'));
+        // Create interview record (scheduled_at can be null until confirmed)
+        Interview::create([
+            'application_id' => $application->id,
+            'interviewer_id' => $request->get('user_id'),
+        ]);
         // Update status to interview scheduled
         $application->update(['status' => 'interview_scheduled']);
         // Select template and notify

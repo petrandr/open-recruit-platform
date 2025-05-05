@@ -136,6 +136,13 @@ class JobApplication extends Model
     {
         return $this->hasMany(ApplicationComment::class, 'application_id');
     }
+    /**
+     * JobApplication has many interviews.
+     */
+    public function interviews()
+    {
+        return $this->hasMany(Interview::class, 'application_id');
+    }
 
     /**
      * JobApplication has one tracking record.
