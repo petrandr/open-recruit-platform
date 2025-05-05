@@ -102,7 +102,7 @@ class InterviewEditScreen extends Screen
     public function save(Request $request, Interview $interview)
     {
         $request->validate([
-            'interview.interviewer_id'   => 'nullable|exists:users,id',
+            'interview.interviewer_id'   => 'required|exists:users,id',
             'interview.scheduled_at'      => 'nullable|date',
             'interview.status'            => ['required', Rule::in(array_keys(\App\Support\Interview::statuses()))],
             'interview.round'             => ['required', Rule::in(array_keys(\App\Support\Interview::rounds()))],
