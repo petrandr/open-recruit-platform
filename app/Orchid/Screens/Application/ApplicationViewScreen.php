@@ -60,10 +60,13 @@ class ApplicationViewScreen extends Screen
             ->where('id', '!=', $application->id)
             ->with('jobListing')
             ->get();
+        // Fetch interviews for this application
+        $interviews = $application->interviews()->with('interviewer')->get();
         return [
             'application' => $application,
             'otherApplications' => $otherApplications,
             'statusLogs' => $application->statusLogs,
+            'interviews' => $interviews,
         ];
     }
 
@@ -239,8 +242,7 @@ class ApplicationViewScreen extends Screen
 
         // Assemble layouts: include sticky header CSS first
         // Assemble layouts
-        $application_details = Layout::legend('application', $basic)
-            ->title(__('Application Details'));
+        $application_details = Layout::legend('application', $basic);
 
         // Table of other applications by this candidate
         $otherApplicationsTable = Layout::table('otherApplications', [
@@ -269,65 +271,80 @@ class ApplicationViewScreen extends Screen
                     ->route('platform.applications.view', $app->id)
                 ),
         ])->title(__('Other Applications'));
-        // Build layouts array
-        $layouts = [];
-        // Show job status alert if job listing is disabled or inactive
+        // Tabbed layout: Details and Interviews (main content)
+        $detailsItems = [];
         $jobStatus = $this->application->jobListing->status;
         if (in_array($jobStatus, ['disable', 'inactive'], true)) {
-            $layouts[] = Layout::view('partials.job-status-alert', [
+            $detailsItems[] = Layout::view('partials.job-status-alert', [
                 'status' => $jobStatus,
             ]);
         }
-        // Show other applications only if there are any
         if ($this->application->candidate->applications()
             ->where('id', '!=', $this->application->id)
             ->exists()) {
-            $layouts[] = $otherApplicationsTable;
+            $detailsItems[] = $otherApplicationsTable;
         }
-        // Show a warning banner if rejection email has been sent
-        if ($this->application->rejection_sent) {
-            $layouts[] = Layout::view('partials.application-rejected-warning');
-        }
-        // Two-column layout: details and comments
-        $layouts[] = Layout::split([
-            // Left: details and screening
-            array_filter([
-                $application_details,
-                !empty($questions)
-                    ? Layout::view('partials.screening-questions')
-                    : null,
-            ]),
-            // Right: comments
-            [
-                Layout::block([
-                    Layout::view('partials.application-comments'),
-                    Layout::rows([
-                        TextArea::make('comment_text')
-                            ->title(__('New Comment'))
-                            ->required()
-                            ->rows(3)
-                            ->class('form-control comment-textarea'),
-                        Button::make(__('Add Comment'))
-                            ->icon('bs.chat-dots')
-                            ->method('addComment', ['id' => $this->application->id])
-                            ->class('btn btn-link icon-link comment-submit'),
-                    ]),
-                ])
-                    ->title(__('Comments'))
-                    ->vertical(),
-                Layout::block([
-                    // Application progress (status history)
-                    Layout::view('partials.application-status-progress', [
-                        'created_at' => $this->application->created_at,
-                        'statusLogs' => $this->application->statusLogs,
-                    ]),
-                ])
-                    ->title(__('Application Progress'))
-                    ->vertical(),
-            ],
 
-        ])
-            ->ratio('70/30');
+        // Application details and screening questions
+        $detailsItems[] = $application_details;
+        if (!empty($questions)) {
+            $detailsItems[] = Layout::view('partials.screening-questions');
+        }
+        // Interviews table
+        $interviewTable = Layout::table('interviews', [
+            TD::make('scheduled_at', __('Scheduled At'))
+                ->render(fn(Interview $i) => $i->scheduled_at
+                    ? $i->scheduled_at->format('Y-m-d H:i')
+                    : '-'),
+            TD::make('interviewer', __('Interviewer'))
+                ->render(fn(Interview $i) => $i->interviewer?->name ?? '-'),
+            TD::make('status', __('Status'))
+                ->render(fn(Interview $i) => ucfirst(str_replace('_', ' ', $i->status))),
+            TD::make('round', __('Round')),
+            TD::make('mode', __('Mode')),
+            TD::make('location', __('Location')),
+            TD::make('duration_minutes', __('Duration (min)')),
+            TD::make(__('Actions'))
+                ->alignRight()
+                ->render(fn(Interview $i) => Link::make(__('Edit'))
+                    ->route('platform.interviews.edit', $i->id)),
+        ]);
+
+        $tabs = Layout::tabs([
+            __('Application Details')   => $detailsItems,
+            __('Interviews') => [$interviewTable],
+        ]);
+        // Sidebar: comments and application progress always visible
+        $sidebar = [
+            Layout::block([
+                Layout::view('partials.application-comments'),
+                Layout::rows([
+                    TextArea::make('comment_text')
+                        ->title(__('New Comment'))
+                        ->required()
+                        ->rows(3)
+                        ->class('form-control comment-textarea'),
+                    Button::make(__('Add Comment'))
+                        ->icon('bs.chat-dots')
+                        ->method('addComment', ['id' => $this->application->id])
+                        ->class('btn btn-link icon-link comment-submit'),
+                ]),
+            ])->title(__('Comments'))->vertical(),
+            Layout::block([
+                Layout::view('partials.application-status-progress', [
+                    'created_at' => $this->application->created_at,
+                    'statusLogs' => $this->application->statusLogs,
+                ]),
+            ])->title(__('Application Progress'))->vertical(),
+        ];
+        // Combine tabs and sidebar into two-column layout
+        $columns = Layout::split([
+            [Layout::view('partials.application-rejected-warning'), $tabs],
+            $sidebar,
+        ])->ratio('70/30');
+        $layouts = [
+            $columns,
+        ];
         // CV preview modal
         $layouts[] = Layout::view('partials.application-cv-modal');
         // Schedule Interview modal: select template, preview and modify before sending
