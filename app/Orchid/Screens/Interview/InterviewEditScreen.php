@@ -5,6 +5,7 @@ namespace App\Orchid\Screens\Interview;
 
 use App\Models\Interview;
 use App\Models\User;
+use Illuminate\Validation\Rule;
 use Orchid\Screen\Screen;
 use Illuminate\Http\Request;
 use Orchid\Screen\Fields\Input;
@@ -103,9 +104,9 @@ class InterviewEditScreen extends Screen
         $request->validate([
             'interview.interviewer_id'   => 'nullable|exists:users,id',
             'interview.scheduled_at'      => 'nullable|date',
-            'interview.status'            => 'required|in:scheduled,completed,cancelled,no-show',
-            'interview.round'             => 'nullable|string|max:255',
-            'interview.mode'              => 'nullable|in:in-person,phone,video',
+            'interview.status'            => ['required', Rule::in(array_keys(\App\Support\Interview::statuses()))],
+            'interview.round'             => ['required', Rule::in(array_keys(\App\Support\Interview::rounds()))],
+            'interview.mode'              => ['required', Rule::in(array_keys(\App\Support\Interview::modes()))],
             'interview.location'          => 'nullable|string|max:255',
             'interview.duration_minutes'  => 'nullable|integer',
             'interview.comments'          => 'nullable|string',

@@ -4,7 +4,9 @@ declare(strict_types=1);
 namespace App\Orchid\Screens\Interview;
 
 use App\Models\Interview;
+use App\Orchid\Layouts\Interview\InterviewFiltersLayout;
 use App\Orchid\Layouts\Interview\InterviewListLayout;
+use Illuminate\Http\Request;
 use Orchid\Screen\Screen;
 use Orchid\Screen\Actions\Link;
 use Orchid\Screen\TD;
@@ -39,11 +41,14 @@ class InterviewListScreen extends Screen
     /**
      * Query data
      */
-    public function query(): iterable
+    public function query(Request $request): iterable
     {
-        $interviews = Interview::with(['application.candidate', 'interviewer', 'application.jobListing'])
-            ->orderByDesc('scheduled_at')
-            ->paginate();
+        $query = Interview::with(['application.candidate', 'interviewer', 'application.jobListing'])
+            ->filters(InterviewFiltersLayout::class)
+            ->orderByDesc('scheduled_at');
+
+        $interviews = $query->paginate();
+
         return [
             'interviews' => $interviews,
         ];
@@ -63,7 +68,8 @@ class InterviewListScreen extends Screen
     public function layout(): iterable
     {
         return [
-            InterviewListLayout::class
+            InterviewFiltersLayout::class,
+            InterviewListLayout::class,
         ];
     }
 }
