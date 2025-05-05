@@ -352,10 +352,16 @@ class ApplicationViewScreen extends Screen
             ])->title(__('Application Progress'))->vertical(),
         ];
         // Combine tabs and sidebar into two-column layout
+        $layouts = [];
+        if ($this->application->rejection_sent) {
+            $layouts[] = Layout::view('partials.application-rejected-warning');
+        }
+        $layouts[] = $tabs;
         $columns = Layout::split([
-            [Layout::view('partials.application-rejected-warning'), $tabs],
+            $layouts,
             $sidebar,
         ])->ratio('70/30');
+
         $layouts = [
             $columns,
         ];
