@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Orchid\Layouts\Interview;
 
 use App\Models\Interview;
+use App\Models\JobApplication;
 use Orchid\Screen\Actions\DropDown;
 use Orchid\Screen\Actions\Link;
 use Orchid\Screen\Layouts\Table;
@@ -21,7 +22,10 @@ class InterviewListLayout extends Table
     public function columns(): array
     {
         return [
-            TD::make('id', __('ID')),
+            TD::make('id', __('ID'))->render(function(Interview $interview) {
+                return Link::make((string) $interview->id)
+                    ->route('platform.interviews.view', $interview);
+            }),
             TD::make('application', __('Application'))->render(function (Interview $interview) {
                 $app = $interview->application;
                 $label = '#' . $app->id . ' - ' . ($app->candidate->first_name ?? '') . ' ' . ($app->candidate->last_name ?? '');
