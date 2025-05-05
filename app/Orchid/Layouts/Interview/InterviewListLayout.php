@@ -35,9 +35,19 @@ class InterviewListLayout extends Table
             TD::make('position', __('Position'))->render(fn(Interview $i) => $i->application->jobListing?->title ?? '-'),
             TD::make('interviewer', __('Interviewer'))->render(fn(Interview $i) => $i->interviewer?->name ?? '-'),
             TD::make('scheduled_at', __('Scheduled At'))->sort(),
-            TD::make('status', __('Status'))->render(fn(Interview $i) => ucfirst(str_replace('_', ' ', $i->status))),
-            TD::make('round', __('Round')),
-            TD::make('mode', __('Mode')),
+            TD::make('status', __('Status'))
+                ->render(function (Interview $interview) {
+                    $item = \App\Support\Interview::statuses()[$interview->status];
+                    return "<span class=\"badge bg-{$item['color']} status-badge\">{$item['label']}</span>";
+                }),
+            TD::make('round', __('Round'))
+                ->render(function (Interview $interview) {
+                    return  \App\Support\Interview::rounds()[$interview->round]['label'];
+                }),
+            TD::make('mode', __('Mode'))
+                ->render(function (Interview $interview) {
+                    return  \App\Support\Interview::modes()[$interview->mode]['label'];
+                }),
             TD::make('location', __('Location')),
             TD::make('duration_minutes', __('Duration (min)')),
             TD::make(__('Actions'))

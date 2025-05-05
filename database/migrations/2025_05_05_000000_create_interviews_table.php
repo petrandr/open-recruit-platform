@@ -13,9 +13,9 @@ return new class extends Migration
             $table->unsignedBigInteger('application_id');
             $table->unsignedBigInteger('interviewer_id')->nullable();
             $table->dateTime('scheduled_at')->nullable();
-            $table->enum('status', ['scheduled', 'completed', 'cancelled', 'no-show'])->default('scheduled');
-            $table->string('round')->nullable()->comment('Interview round, e.g., Phone Screen, Technical, HR');
-            $table->enum('mode', ['in-person', 'phone', 'video'])->nullable()->comment('Interview mode');
+            $table->enum('status', array_keys(\App\Support\Interview::statuses()))->default('scheduled');
+            $table->enum('round', array_keys(\App\Support\Interview::rounds()))->comment('Interview round, e.g., Phone Screen, Technical, HR');
+            $table->enum('mode', array_keys(\App\Support\Interview::modes()))->comment('Interview mode');
             $table->string('location')->nullable()->comment('Location or link for the interview');
             $table->integer('duration_minutes')->nullable()->comment('Duration in minutes');
             $table->text('comments')->nullable()->comment('Interviewer comments or feedback');
