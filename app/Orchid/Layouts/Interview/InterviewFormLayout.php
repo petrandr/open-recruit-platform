@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Orchid\Layouts\Interview;
 
 use App\Orchid\Fields\Ckeditor;
+use App\Support\Interview;
 use Orchid\Screen\Layouts\Rows;
 use Orchid\Screen\Fields\Input;
 use Orchid\Screen\Fields\Select;
@@ -40,40 +41,31 @@ class InterviewFormLayout extends Rows
             // Scheduled datetime
             DateTimer::make('interview.scheduled_at')
                 ->title(__('Scheduled At'))
-                ->enableTimePicker(),
+                ->enableTime(),
 
             // Status
             Select::make('interview.status')
                 ->title(__('Status'))
-                ->options([
-                    'scheduled' => __('Scheduled'),
-                    'completed' => __('Completed'),
-                    'cancelled' => __('Cancelled'),
-                    'no-show'   => __('No-Show'),
-                ])
+                ->options(collect(Interview::statuses())
+                    ->mapWithKeys(fn($meta, $key) => [$key => $meta['label']])
+                    ->toArray())
                 ->required(),
 
             // Interview round
             Select::make('interview.round')
                 ->title(__('Round'))
                 ->empty(__('Select a round'), '')
-                ->options([
-                    'Screening'        => __('Screening'),
-                    'Skill Assessment' => __('Skill Assessment'),
-                    'Technical'        => __('Technical'),
-                    'Behavioral'       => __('Behavioral'),
-                    'Managerial'       => __('Managerial'),
-                    'HR'               => __('HR'),
-                ]),
+                ->options(collect(Interview::rounds())
+                    ->mapWithKeys(fn($meta, $key) => [$key => $meta['label']])
+                    ->toArray()
+                ),
 
             // Mode
             Select::make('interview.mode')
                 ->title(__('Mode'))
-                ->options([
-                    'in-person' => __('In-Person'),
-                    'phone'     => __('Phone'),
-                    'video'     => __('Video'),
-                ]),
+                ->options(collect(Interview::modes())
+                    ->mapWithKeys(fn($meta, $key) => [$key => $meta['label']])
+                    ->toArray()),
 
             // Location or video link
             Input::make('interview.location')

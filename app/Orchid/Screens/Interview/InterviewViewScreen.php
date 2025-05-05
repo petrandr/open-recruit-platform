@@ -91,12 +91,21 @@ class InterviewViewScreen extends Screen
                 Sight::make('position', __('Position'))->render(fn() => $this->interview->application->jobListing?->title ?? '-'),
                 Sight::make('interviewer', __('Interviewer'))->render(fn() => $this->interview->interviewer?->name ?? '-'),
                 Sight::make('scheduled_at', __('Scheduled At'))->render(fn() => $this->interview->scheduled_at?->format('Y-m-d H:i:s') ?? '-'),
-                Sight::make('status', __('Status'))->render(fn() => ucfirst(str_replace('_', ' ', $this->interview->status))),
-                Sight::make('round', __('Round'))->render(fn() => $this->interview->round ?? '-'),
-                Sight::make('mode', __('Mode'))->render(fn() => $this->interview->mode ?? '-'),
+                Sight::make('status', __('Status'))->render(function () {
+                    $item = \App\Support\Interview::statuses()[$this->interview->status];
+                    return "<span class=\"badge bg-{$item['color']} status-badge\">{$item['label']}</span>";
+                }),
+                Sight::make('round', __('Round'))->render(function () {
+                    $item = \App\Support\Interview::rounds()[$this->interview->round];
+                    return "<span class=\"badge bg-{$item['color']} status-badge\">{$item['label']}</span>";
+                }),
+                Sight::make('mode', __('Mode'))->render(function () {
+                    $item = \App\Support\Interview::modes()[$this->interview->mode];
+                    return "<span class=\"badge bg-{$item['color']} status-badge\">{$item['label']}</span>";
+                }),
                 Sight::make('location', __('Location'))->render(fn() => $this->interview->location ?? '-'),
                 Sight::make('duration_minutes', __('Duration (min)'))->render(fn() => $this->interview->duration_minutes !== null ? $this->interview->duration_minutes : '-'),
-                Sight::make('comments', __('Comments'))->render(fn() => $this->interview->comments ? nl2br(e($this->interview->comments)) : '-'),
+                Sight::make('comments', __('Comments'))->render(fn() => $this->interview->comments ? nl2br(($this->interview->comments)) : '-'),
             ])->title(__('Interview Details')),
         ];
     }

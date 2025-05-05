@@ -7,6 +7,8 @@ use App\Models\JobApplication;
 use App\Orchid\Fields\Ckeditor;
 use App\Support\ApplicationStatus;
 use App\Models\Interview;
+use Illuminate\Validation\Rule;
+use Orchid\Screen\Fields\DateTimer;
 use Orchid\Screen\Fields\TextArea;
 use Orchid\Screen\Screen;
 use Orchid\Support\Facades\Layout;
@@ -292,6 +294,11 @@ class ApplicationViewScreen extends Screen
         }
         // Interviews table
         $interviewTable = Layout::table('interviews', [
+            TD::make('id', __('ID'))
+                ->render(function (Interview $interview) {
+                    return Link::make((string) $interview->id)
+                        ->route('platform.interviews.view', $interview);
+                }),
             TD::make('scheduled_at', __('Scheduled At'))
                 ->render(fn(Interview $i) => $i->scheduled_at
                     ? $i->scheduled_at->format('Y-m-d H:i')
@@ -299,11 +306,18 @@ class ApplicationViewScreen extends Screen
             TD::make('interviewer', __('Interviewer'))
                 ->render(fn(Interview $i) => $i->interviewer?->name ?? '-'),
             TD::make('status', __('Status'))
-                ->render(fn(Interview $i) => ucfirst(str_replace('_', ' ', $i->status))),
-            TD::make('round', __('Round')),
-            TD::make('mode', __('Mode')),
-            TD::make('location', __('Location')),
-            TD::make('duration_minutes', __('Duration (min)')),
+                ->render(function (Interview $interview) {
+                    $item = \App\Support\Interview::statuses()[$interview->status];
+                    return "<span class=\"badge bg-{$item['color']} status-badge\">{$item['label']}</span>";
+                }),
+            TD::make('round', __('Round'))
+                ->render(function (Interview $interview) {
+                    return  \App\Support\Interview::rounds()[$interview->round]['label'];
+                }),
+            TD::make('mode', __('Mode'))
+                ->render(function (Interview $interview) {
+                    return  \App\Support\Interview::modes()[$interview->mode]['label'];
+                }),
             TD::make(__('Actions'))
                 ->alignRight()
                 ->render(fn(Interview $i) => Link::make(__('Edit'))
@@ -311,7 +325,7 @@ class ApplicationViewScreen extends Screen
         ]);
 
         $tabs = Layout::tabs([
-            __('Application Details')   => $detailsItems,
+            __('Application Details') => $detailsItems,
             __('Interviews') => [$interviewTable],
         ]);
         // Sidebar: comments and application progress always visible
@@ -367,6 +381,24 @@ class ApplicationViewScreen extends Screen
                     Input::make('id')
                         ->type('hidden')
                         ->value($this->application->id),
+                    Select::make('interview_round')
+                        ->title(__('Interview Round'))
+                        ->empty(__('Select a round'), '')
+                        ->options(collect(\App\Support\Interview::rounds())
+                            ->mapWithKeys(fn($meta, $key) => [$key => $meta['label']])
+                            ->toArray())
+                        ->required(),
+                    Select::make('interview_mode')
+                        ->title(__('Interview Mode'))
+                        ->empty(__('Select a mode'), '')
+                        ->options(collect(\App\Support\Interview::modes())
+                            ->mapWithKeys(fn($meta, $key) => [$key => $meta['label']])
+                            ->toArray())
+                        ->required(),
+                    // Scheduled datetime
+                    DateTimer::make('interview_scheduled_at')
+                        ->title(__('Scheduled At'))
+                        ->enableTime(),
                     Select::make('template_id')
                         ->id('schedule-template-select')
                         ->title(__('Invitation Template'))
@@ -503,11 +535,26 @@ class ApplicationViewScreen extends Screen
      */
     public function scheduleInterviewWithEmail(Request $request): void
     {
+        $request->validate([
+            'id' => 'required|exists:job_applications,id',
+            'interview_round' => ['required', Rule::in(array_keys(\App\Support\Interview::rounds()))],
+            'interview_mode' => ['required', Rule::in(array_keys(\App\Support\Interview::modes()))],
+            'interview_scheduled_at' => 'nullable|date',
+            'template_id' => 'required|exists:notification_templates,id',
+            'user_id' => 'required|exists:users,id',
+            'calendar_id' => 'nullable|exists:appointment_calendars,id',
+            'subject' => 'required|string|max:255',
+            'body' => 'nullable|string',
+        ]);
+
         $application = JobApplication::with('candidate')->findOrFail($request->get('id'));
         // Create interview record (scheduled_at can be null until confirmed)
         Interview::create([
             'application_id' => $application->id,
             'interviewer_id' => $request->get('user_id'),
+            'mode' => $request->get('interview_mode'),
+            'round' => $request->get('interview_round'),
+            'scheduled_at' => $request->get('interview_scheduled_at'),
         ]);
         // Update status to interview scheduled
         $application->update(['status' => 'interview_scheduled']);
