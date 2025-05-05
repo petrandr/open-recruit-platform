@@ -36,12 +36,8 @@ class InterviewFormLayout extends Rows
             // Interviewer picker
             Relation::make('interview.interviewer_id')
                 ->fromModel(User::class, 'name')
-                ->title(__('Interviewer')),
-
-            // Scheduled datetime
-            DateTimer::make('interview.scheduled_at')
-                ->title(__('Scheduled At'))
-                ->enableTime(),
+                ->title(__('Interviewer'))
+                ->required(),
 
             // Status
             Select::make('interview.status')
@@ -58,14 +54,21 @@ class InterviewFormLayout extends Rows
                 ->options(collect(Interview::rounds())
                     ->mapWithKeys(fn($meta, $key) => [$key => $meta['label']])
                     ->toArray()
-                ),
+                )
+                ->required(),
 
             // Mode
             Select::make('interview.mode')
                 ->title(__('Mode'))
                 ->options(collect(Interview::modes())
                     ->mapWithKeys(fn($meta, $key) => [$key => $meta['label']])
-                    ->toArray()),
+                    ->toArray())
+                ->required(),
+
+            // Scheduled datetime
+            DateTimer::make('interview.scheduled_at')
+                ->title(__('Scheduled At'))
+                ->enableTime(),
 
             // Location or video link
             Input::make('interview.location')
