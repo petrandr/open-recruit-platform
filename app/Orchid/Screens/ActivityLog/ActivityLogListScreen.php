@@ -58,10 +58,7 @@ class ActivityLogListScreen extends Screen
     public function commandBar(): iterable
     {
         return [
-            Link::make(__('Clear All'))
-                ->icon('bs.trash3')
-                ->confirm(__('Are you sure you want to clear all activity logs?'))
-                ->method('clear'),
+
         ];
     }
 
