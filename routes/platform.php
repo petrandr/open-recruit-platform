@@ -144,9 +144,6 @@ Route::screen('applications', ApplicationListScreen::class)
     ->breadcrumbs(fn(Trail $trail) => $trail
         ->parent('platform.index')
         ->push(__('Applications'), route('platform.applications')));
-// Platform > Recruitment > Application Details (AJAX)
-Route::get('applications/{application}/details', [\App\Http\Controllers\ApplicationDetailController::class, 'show'])
-    ->name('platform.applications.details');
 // Platform > Recruitment > Application CV Preview
 Route::get('applications/{application}/cv', [\App\Http\Controllers\ApplicationDetailController::class, 'cv'])
     ->name('platform.applications.cv');
@@ -166,7 +163,7 @@ Route::screen('applications/{application}', ApplicationViewScreen::class)
     ->name('platform.applications.view')
     ->breadcrumbs(fn(Trail $trail, JobApplication $application) => $trail
         ->parent('platform.applications')
-        ->push("#{$application->id}", route('platform.applications.view', $application)));
+        ->push("#{$application->id} - {$application->candidate->full_name} - {$application->jobListing->title}", route('platform.applications.view', $application)));
 // Platform > System > Activity Logs
 Route::screen('activity-logs', ActivityLogListScreen::class)
     ->name('platform.activity.logs')
@@ -228,7 +225,10 @@ Route::screen('calendars/create', AppointmentCalendarEditScreen::class)
 
 // Platform > System > My Calendars > Edit
 Route::screen('calendars/{calendar}/edit', AppointmentCalendarEditScreen::class)
-    ->name('platform.calendars.edit');
+    ->name('platform.calendars.edit')
+    ->breadcrumbs(fn (Trail $trail, $calendar) => $trail
+        ->parent('platform.calendars')
+        ->push($calendar->name, route('platform.calendars.edit', $calendar)));
 // Platform > System > Notification Templates
 Route::screen('notification-templates', NotificationTemplateListScreen::class)
     ->name('platform.notification.templates')
@@ -241,6 +241,6 @@ Route::screen('notification-templates/create', NotificationTemplateEditScreen::c
 // Platform > System > Notification Templates > Edit
 Route::screen('notification-templates/{template}/edit', NotificationTemplateEditScreen::class)
     ->name('platform.notification.templates.edit')
-    ->breadcrumbs(fn (Trail $trail, $calendar) => $trail
-        ->parent('platform.calendars')
-        ->push(optional($calendar)->name ?: __('Edit'), route('platform.calendars.edit', $calendar)));
+    ->breadcrumbs(fn (Trail $trail, $template) => $trail
+        ->parent('platform.notification.templates')
+        ->push(optional($template)->name ?: __('Edit'), route('platform.notification.templates.edit', $template)));

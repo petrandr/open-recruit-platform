@@ -10,23 +10,6 @@ use Illuminate\Http\Request;
 
 class ApplicationDetailController extends Controller
 {
-    /**
-     * Show detailed application info including screening questions.
-     */
-    public function show(JobApplication $application)
-    {
-        // Eager load related data
-        $application->load([
-            'jobListing',
-            'candidate',
-            'answers.question',
-            'jobListing.screeningQuestions',
-        ]);
-        // Return a concise summary for the
-        return view('partials.application-summary', [
-            'application' => $application,
-        ]);
-    }
 
     /**
      * Preview the CV in a modal.
