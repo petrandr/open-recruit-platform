@@ -164,6 +164,18 @@ Route::screen('applications/{application}', ApplicationViewScreen::class)
     ->breadcrumbs(fn(Trail $trail, JobApplication $application) => $trail
         ->parent('platform.applications')
         ->push("#{$application->id} - {$application->candidate->full_name} - {$application->jobListing->title}", route('platform.applications.view', $application)));
+// Platform > Recruitment > Interviews
+Route::screen('interviews', App\Orchid\Screens\Interview\InterviewListScreen::class)
+    ->name('platform.interviews')
+    ->breadcrumbs(fn (Trail $trail) => $trail
+        ->parent('platform.index')
+        ->push(__('Interviews'), route('platform.interviews')));
+// Platform > Recruitment > Interviews > Edit
+Route::screen('interviews/{interview}/edit', App\Orchid\Screens\Interview\InterviewEditScreen::class)
+    ->name('platform.interviews.edit')
+    ->breadcrumbs(fn (Trail $trail, App\Models\Interview $interview) => $trail
+        ->parent('platform.interviews')
+        ->push("#{$interview->id}", route('platform.interviews.edit', $interview)));
 // Platform > System > Activity Logs
 Route::screen('activity-logs', ActivityLogListScreen::class)
     ->name('platform.activity.logs')
