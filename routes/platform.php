@@ -170,6 +170,12 @@ Route::screen('interviews', App\Orchid\Screens\Interview\InterviewListScreen::cl
     ->breadcrumbs(fn (Trail $trail) => $trail
         ->parent('platform.index')
         ->push(__('Interviews'), route('platform.interviews')));
+// Platform > Recruitment > My Interviews
+Route::screen('interviews/my', App\Orchid\Screens\Interview\MyInterviewsScreen::class)
+    ->name('platform.interviews.my')
+    ->breadcrumbs(fn (Trail $trail) => $trail
+        ->parent('platform.interviews')
+        ->push(__('My Interviews'), route('platform.interviews.my')));
 // Platform > Recruitment > Interviews > Edit
 Route::screen('interviews/{interview}/edit', App\Orchid\Screens\Interview\InterviewEditScreen::class)
     ->name('platform.interviews.edit')
