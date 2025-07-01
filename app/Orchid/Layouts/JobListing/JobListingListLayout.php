@@ -74,33 +74,38 @@ class JobListingListLayout extends Table
                 ->align(TD::ALIGN_CENTER)
                 ->width('100px')
                 ->render(function (JobListing $job) {
-                    // Base dropdown
+                    $user = auth()->user();
+                    $canEdit = $user->hasAccess('platform.jobs.edit');
+                    $canDelete = $user->hasAccess('platform.jobs.delete');
                     $dropdown = DropDown::make()->icon('bs.three-dots-vertical');
-                    // Core actions
-                    $items = [
-                        Link::make(__('Edit'))
+                    $items = [];
+                    // Edit action
+                    if ($canEdit) {
+                        $items[] = Link::make(__('Edit'))
                             ->icon('bs.pencil')
-                            ->route('platform.jobs.edit', $job->id),
-                    ];
-
-                    $items[] = Button::make(__('Delete'))
-                        ->icon('bs.trash3')
-                        ->confirm(__('Are you sure you want to delete this job listing?'))
-                        ->method('removeJobListing', ['id' => $job->id]);
-
-
-                    // Status change options, hiding current status
-                    $statuses = [
-                        'active' => ['Set Active', 'bs.check-circle'],
-                        'inactive' => ['Set Inactive', 'bs.pause-circle'],
-                        'draft' => ['Set Draft', 'bs.pencil'],
-                        'disable' => ['Disable', 'bs.slash-circle'],
-                    ];
-                    foreach ($statuses as $key => [$label, $icon]) {
-                        if ($job->status !== $key) {
-                            $items[] = Button::make(__($label))
-                                ->icon($icon)
-                                ->method('changeJobStatus', ['id' => $job->id, 'status' => $key]);
+                            ->route('platform.jobs.edit', $job->id);
+                    }
+                    // Delete action
+                    if ($canDelete) {
+                        $items[] = Button::make(__('Delete'))
+                            ->icon('bs.trash3')
+                            ->confirm(__('Are you sure you want to delete this job listing?'))
+                            ->method('removeJobListing', ['id' => $job->id]);
+                    }
+                    // Status change actions
+                    if ($canEdit) {
+                        $statuses = [
+                            'active' => ['Set Active', 'bs.check-circle'],
+                            'inactive' => ['Set Inactive', 'bs.pause-circle'],
+                            'draft' => ['Set Draft', 'bs.pencil'],
+                            'disable' => ['Disable', 'bs.slash-circle'],
+                        ];
+                        foreach ($statuses as $key => [$label, $icon]) {
+                            if ($job->status !== $key) {
+                                $items[] = Button::make(__($label))
+                                    ->icon($icon)
+                                    ->method('changeJobStatus', ['id' => $job->id, 'status' => $key]);
+                            }
                         }
                     }
                     return $dropdown->list($items);

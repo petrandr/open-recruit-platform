@@ -77,7 +77,8 @@ class JobListingViewScreen extends Screen
                 ->route('platform.jobs'),
             Link::make(__('Edit'))
                 ->icon('bs.pencil')
-                ->route('platform.jobs.edit', $this->job->id),
+                ->route('platform.jobs.edit', $this->job->id)
+                ->canSee(auth()->user()->hasAccess('platform.jobs.edit')),
             // Change job status
             Button::make(__('Activate'))
                 ->icon('bs.check2-circle')
@@ -86,7 +87,8 @@ class JobListingViewScreen extends Screen
                     'status' => 'active',
                 ])
                 ->confirm(__('Are you sure you want to activate this job position?'))
-                ->novalidate(),
+                ->novalidate()
+                ->canSee(auth()->user()->hasAccess('platform.jobs.edit')),
             Button::make(__('Set Inactive'))
                 ->icon('bs.pause-circle')
                 ->method('changeJobStatus', [
@@ -94,7 +96,8 @@ class JobListingViewScreen extends Screen
                     'status' => 'inactive',
                 ])
                 ->confirm(__('Are you sure you want to set this job position to inactive?'))
-                ->novalidate(),
+                ->novalidate()
+                ->canSee(auth()->user()->hasAccess('platform.jobs.edit')),
             Button::make(__('Disable'))
                 ->icon('bs.x-circle')
                 ->method('changeJobStatus', [
@@ -102,7 +105,8 @@ class JobListingViewScreen extends Screen
                     'status' => 'disable',
                 ])
                 ->confirm(__('Are you sure you want to disable this job position?'))
-                ->novalidate(),
+                ->novalidate()
+                ->canSee(auth()->user()->hasAccess('platform.jobs.edit')),
         ];
     }
 

@@ -76,7 +76,8 @@ class JobListingListScreen extends Screen
         return [
             Link::make(__('Add'))
                 ->icon('bs.plus-circle')
-                ->route('platform.jobs.create'),
+                ->route('platform.jobs.create')
+                ->canSee(auth()->user()->hasAccess('platform.jobs.create')),
         ];
     }
 

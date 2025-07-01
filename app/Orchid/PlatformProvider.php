@@ -168,7 +168,10 @@ class PlatformProvider extends OrchidServiceProvider
                 ->addPermission('platform.notification.templates', __('Notification Templates'))
                 ->addPermission('platform.calendars', __('Calendars')),
             ItemPermission::group(__('Recruitment'))
-                ->addPermission('platform.jobs', __('Jobs'))
+                ->addPermission('platform.jobs', __('View Jobs'))
+                ->addPermission('platform.jobs.create', __('Create Jobs'))
+                ->addPermission('platform.jobs.edit', __('Edit Jobs'))
+                ->addPermission('platform.jobs.delete', __('Delete Jobs'))
                 ->addPermission('platform.candidates', __('Candidates'))
                 ->addPermission('platform.applications', __('Applications'))
                 ->addPermission('platform.interviews', __('Interviews'))

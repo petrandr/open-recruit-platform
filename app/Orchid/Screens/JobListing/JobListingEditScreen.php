@@ -63,11 +63,15 @@ class JobListingEditScreen extends Screen
     }
 
     /**
-     * Permissions required to access.
+     * Permissions required to access create or edit operations.
      */
     public function permission(): ?iterable
     {
-        return ['platform.jobs'];
+        // Allow create or edit depending on job existence
+        if ($this->job) {
+            return ['platform.jobs.edit'];
+        }
+        return ['platform.jobs.create'];
     }
 
     /**
@@ -84,7 +88,11 @@ class JobListingEditScreen extends Screen
             Button::make(__('Remove'))
                 ->icon('bs.trash3')
                 ->method('removeJob')
-                ->canSee($this->job->exists && $this->job->applications_count === 0)
+                ->canSee(
+                    $this->job->exists &&
+                    $this->job->applications_count === 0 &&
+                    auth()->user()->hasAccess('platform.jobs.delete')
+                )
                 ->confirm(__('Are you sure you want to delete this job position?')),
             Button::make(__('Save'))
                 ->icon('bs.check-circle')
