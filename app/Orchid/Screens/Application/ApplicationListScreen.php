@@ -47,6 +47,13 @@ class ApplicationListScreen extends Screen
         $query = JobApplication::with('jobListing', 'candidate')
             ->filters(ApplicationFiltersLayout::class)
             ->defaultSort('id', 'desc');
+        // Restrict to applications for accessible jobs
+        $roleIds = auth()->user()->roles()->pluck('id')->toArray();
+        $query->where(function ($q) use ($roleIds) {
+              $q->WhereHas('jobListing.roles', function ($q2) use ($roleIds) {
+                  $q2->whereIn('roles.id', $roleIds);
+              });
+        });
 
         if ($name = $request->get('candidate')) {
             $query->whereHas('candidate', function ($q) use ($name) {

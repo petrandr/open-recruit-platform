@@ -46,6 +46,13 @@ class InterviewListScreen extends Screen
         $query = Interview::with(['application.candidate', 'interviewer', 'application.jobListing'])
             ->filters(InterviewFiltersLayout::class)
             ->orderByDesc('scheduled_at');
+        // Restrict to interviews for accessible jobs
+        $roleIds = auth()->user()->roles()->pluck('id')->toArray();
+        $query->where(function ($q) use ($roleIds) {
+              $q->WhereHas('application.jobListing.roles', function ($q2) use ($roleIds) {
+                  $q2->whereIn('roles.id', $roleIds);
+              });
+        });
 
         $interviews = $query->paginate();
 

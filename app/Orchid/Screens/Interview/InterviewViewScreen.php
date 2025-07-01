@@ -27,7 +27,13 @@ class InterviewViewScreen extends Screen
     public function query(Interview $interview): iterable
     {
         $interview->load(['application.candidate', 'application.jobListing', 'interviewer']);
-
+        // Access control: only allow if job unrestricted or user has matching role
+        $userRoleIds = auth()->user()->roles()->pluck('id')->toArray();
+        $jobRoleIds  = $interview->application->jobListing->roles->pluck('id')->toArray();
+        if (empty(array_intersect($jobRoleIds, $userRoleIds))) {
+            abort(403);
+        }
+        
         return [
             'interview' => $interview,
         ];

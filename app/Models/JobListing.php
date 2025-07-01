@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Orchid\Filters\Filterable;
 use Orchid\Screen\AsSource;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Orchid\Platform\Models\Role;
 use Orchid\Filters\Types\Where;
 use Orchid\Filters\Types\Like;
 use Orchid\Filters\Types\WhereDateStartEnd;
@@ -89,6 +91,15 @@ class JobListing extends Model
     public function screeningQuestions()
     {
         return $this->hasMany(JobScreeningQuestion::class, 'job_id');
+    }
+    /**
+     * JobListing has many Roles.
+     *
+     * @return BelongsToMany
+     */
+    public function roles(): BelongsToMany
+    {
+        return $this->belongsToMany(Role::class, 'job_listing_role', 'job_listing_id', 'role_id');
     }
     /**
      * Get the title with status in parentheses.

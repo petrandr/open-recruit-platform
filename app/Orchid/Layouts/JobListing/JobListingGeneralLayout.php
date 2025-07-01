@@ -10,6 +10,7 @@ use Orchid\Screen\Fields\Select;
 use Orchid\Screen\Fields\DateTimer;
 use Orchid\Screen\Fields\Relation;
 use App\Models\User;
+use Orchid\Platform\Models\Role;
 
 class JobListingGeneralLayout extends Rows
 {
@@ -76,6 +77,12 @@ class JobListingGeneralLayout extends Rows
                 ->title(__('Notification Recipients'))
                 ->fromModel(User::class, 'name')
                 ->multiple(),
+            // Roles allowed to access this job
+            Relation::make('job.roles')
+                ->title(__('Allowed Roles'))
+                ->fromModel(Role::class, 'name')
+                ->multiple()
+                ->help(__('Select roles permitted to access this job applications')),
 
         ];
     }

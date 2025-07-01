@@ -47,8 +47,9 @@ class ApplicationViewScreen extends Screen
      */
     public function query(JobApplication $application): iterable
     {
+        // Load relations including job roles for access control
         $application->load([
-            'jobListing',
+            'jobListing.roles',
             'candidate',
             'answers.question',
             'jobListing.screeningQuestions',
@@ -56,6 +57,12 @@ class ApplicationViewScreen extends Screen
             'comments.user',
             'statusLogs.user',
         ]);
+        // Access control: only allow if job unrestricted or user has matching role
+        $userRoleIds = Auth::user()->roles()->pluck('id')->toArray();
+        $jobRoleIds  = $application->jobListing->roles->pluck('id')->toArray();
+        if (empty(array_intersect($jobRoleIds, $userRoleIds))) {
+            abort(403);
+        }
         // Fetch other applications submitted by this candidate (exclude current)
         $otherApplications = $application->candidate
             ->applications()

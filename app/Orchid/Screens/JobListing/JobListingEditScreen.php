@@ -171,9 +171,14 @@ class JobListingEditScreen extends Screen
             'job.status'            => ['required', Rule::in(['draft', 'active', 'inactive', 'disable'])],
             'job.who_to_notify'     => 'nullable|array',
             'job.who_to_notify.*'   => 'exists:users,id',
+            // Roles allowed to access this job
+            'job.roles'             => 'nullable|array',
+            'job.roles.*'           => 'integer|exists:roles,id',
         ]);
 
         $job->fill($request->input('job'))->save();
+        // Sync allowed roles
+        $job->roles()->sync($request->input('job.roles', []));
 
         // Handle screening questions
         $screeningData = $request->input('screeningQuestions', []);
