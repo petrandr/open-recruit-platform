@@ -55,7 +55,7 @@ class UserPresenter extends Presenter implements Personable, Searchable
     {
         $hash = md5(strtolower(trim($this->entity->email)));
 
-        $default = urlencode('https://raw.githubusercontent.com/petrandr/reklent_public/refs/heads/main/reklent_logo_gray.png');
+        $default = urlencode('https://raw.githubusercontent.com/petrandr/open-recruit-platform/refs/heads/main/public/images/logo_gray.png');
 
         return "https://www.gravatar.com/avatar/$hash?d=$default";
     }

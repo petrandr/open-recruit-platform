@@ -12,6 +12,6 @@
     @endauth
 
     <p class="my-0 {{ auth()->check() ? 'd-none d-xl-block' : '' }}">
-        <img alt="{{ config('app.name') }}" src="{{ asset('/images/reklent_logo.png') }}" height="50px">
+        <img alt="{{ config('app.name') }}" src="{{ asset(config('platform.logo')) }}" height="50px">
     </p>
 </div>

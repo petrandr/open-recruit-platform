@@ -406,4 +406,17 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Platform Logo
+    |--------------------------------------------------------------------------
+    |
+    | This value defines the name of your organization or company. It can be
+    | used throughout your application for branding purposes, system messages,
+    | email signatures, or other display locations. The value is typically
+    | pulled from the environment configuration to allow flexibility.
+    |
+    */
+
+    'logo' => env('PLATFORM_LOGO_PATH', '/images/logo.png'),
 ];
