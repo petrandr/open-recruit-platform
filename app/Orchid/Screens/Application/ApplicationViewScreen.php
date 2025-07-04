@@ -194,6 +194,18 @@ class ApplicationViewScreen extends Screen
         }
         Toast::info(__('Application has been shared.'));
     }
+    /**
+     * Remove a shared user from this application.
+     *
+     * @param \Illuminate\Http\Request $request
+     */
+    public function removeShare(\Illuminate\Http\Request $request): void
+    {
+        $application = JobApplication::findOrFail($request->get('id'));
+        $userId = $request->get('user_id');
+        $application->sharedWith()->detach($userId);
+        Toast::info(__('User removed from share list.'));
+    }
 
     /**
      * Add a comment to this application.
@@ -496,7 +508,8 @@ class ApplicationViewScreen extends Screen
         $layouts[] = Layout::modal('shareModal', [
             // List of users already shared
             Layout::view('partials.share-modal-shared-list', [
-                'shared' => $sharedUsers,
+                'shared'      => $sharedUsers,
+                'application' => $this->application,
             ]),
             Layout::rows([
                 // Hidden field to pass application ID
@@ -507,8 +520,7 @@ class ApplicationViewScreen extends Screen
                     ->options($availableUsers)
                     ->multiple()
                     ->title(__('Share With'))
-                    ->help(__('Select users to share this application with.'))
-                    ->empty(__('No additional users available'), ''),
+                    ->help(__('Select users to share this application with.')),
             ]),
             // Share button
             Layout::view('partials.share-modal-buttons'),
