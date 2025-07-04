@@ -49,9 +49,10 @@ class ApplicationViewScreen extends Screen
      */
     public function query(JobApplication $application): iterable
     {
-        // Load relations including job roles for access control
+        // Load relations including job roles and shared users for access control
         $application->load([
             'jobListing.roles',
+            'sharedWith',
             'candidate',
             'answers.question',
             'jobListing.screeningQuestions',
@@ -59,10 +60,12 @@ class ApplicationViewScreen extends Screen
             'comments.user',
             'statusLogs.user',
         ]);
-        // Access control: only allow if job unrestricted or user has matching role
-        $userRoleIds = Auth::user()->roles()->pluck('id')->toArray();
+        // Access control: allow if user has a role for this job OR the application was shared with them
+        $user = Auth::user();
+        $userRoleIds = $user->roles()->pluck('id')->toArray();
         $jobRoleIds  = $application->jobListing->roles->pluck('id')->toArray();
-        if (empty(array_intersect($jobRoleIds, $userRoleIds))) {
+        $shared = $application->sharedWith->contains('id', $user->id);
+        if (empty(array_intersect($jobRoleIds, $userRoleIds)) && ! $shared) {
             abort(403);
         }
         // Fetch other applications submitted by this candidate (exclude current)
@@ -160,11 +163,16 @@ class ApplicationViewScreen extends Screen
                     ->toArray()
             );
 
-        // Share Application button (opens shareModal)
+        // Share Application button (opens shareModal) - only for users with job-level role
+        $canShare = $this->application->jobListing
+            ->roles()
+            ->whereIn('roles.id', auth()->user()->roles()->pluck('id')->toArray())
+            ->exists();
         $commands[] = ModalToggle::make(__('Share Application'))
             ->icon('bs.share')
             ->modal('shareModal')
-            ->novalidate();
+            ->novalidate()
+            ->canSee($canShare);
         return $commands;
     }
     /**
@@ -175,6 +183,12 @@ class ApplicationViewScreen extends Screen
     public function shareApplication(\Illuminate\Http\Request $request): void
     {
         $application = JobApplication::findOrFail($request->get('id'));
+        // Authorization: only allow users with job-level roles to share
+        $userRoleIds = auth()->user()->roles()->pluck('id')->toArray();
+        $jobRoleIds = $application->jobListing->roles()->pluck('id')->toArray();
+        if (empty(array_intersect($userRoleIds, $jobRoleIds))) {
+            abort(403);
+        }
         $userIds = $request->get('share_user_ids', []);
         if (!is_array($userIds)) {
             $userIds = [];
@@ -202,6 +216,12 @@ class ApplicationViewScreen extends Screen
     public function removeShare(\Illuminate\Http\Request $request): void
     {
         $application = JobApplication::findOrFail($request->get('id'));
+        // Authorization: only allow users with job-level roles to remove share
+        $userRoleIds = auth()->user()->roles()->pluck('id')->toArray();
+        $jobRoleIds = $application->jobListing->roles()->pluck('id')->toArray();
+        if (empty(array_intersect($userRoleIds, $jobRoleIds))) {
+            abort(403);
+        }
         $userId = $request->get('user_id');
         $application->sharedWith()->detach($userId);
         Toast::info(__('User removed from share list.'));
@@ -403,6 +423,12 @@ class ApplicationViewScreen extends Screen
                     'statusLogs' => $this->application->statusLogs,
                 ]),
             ])->title(__('Application Progress'))->vertical(),
+            // Shared with list
+            Layout::block([
+                Layout::view('partials.application-shared-with-list', [
+                    'shared' => $this->application->sharedWith,
+                ]),
+            ])->title(__('Shared With'))->vertical(),
         ];
         // Combine tabs and sidebar into two-column layout
         $layouts = [];
