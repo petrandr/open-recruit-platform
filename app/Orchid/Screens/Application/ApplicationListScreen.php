@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Orchid\Screens\Application;
 
 use App\Models\JobApplication;
+use App\Orchid\Fields\Ckeditor;
 use App\Orchid\Layouts\Application\ApplicationFiltersLayout;
 use App\Orchid\Layouts\Application\ApplicationListLayout;
 use Illuminate\Http\Request;
@@ -15,7 +16,9 @@ use App\Models\NotificationTemplate;
 use Orchid\Screen\Fields\Select;
 use Orchid\Screen\Fields\Input;
 use Orchid\Screen\Fields\TextArea;
+use Orchid\Screen\Fields\DateTimer;
 use Orchid\Screen\Layouts\Modal as ModalLayout;
+use Carbon\Carbon;
 use App\Notifications\ApplicationRejectedNotification;
 
 class ApplicationListScreen extends Screen
@@ -138,11 +141,13 @@ class ApplicationListScreen extends Screen
                         ->id('reject-subject')
                         ->title(__('Subject'))
                         ->required(),
-                    TextArea::make('body')
+                    Ckeditor::make('body')
                         ->id('reject-body')
-                        ->title(__('Message'))
-                        ->rows(10)
-                        ->required(),
+                        ->title(__('Message')),
+                    DateTimer::make('send_at')
+                        ->enableTime()
+                        ->title(__('Send At'))
+                        ->help(__('Optional: schedule when rejection email is sent. Defaults to one hour from now.')),
                 ]),
                 Layout::view('partials.reject-modal-buttons'),
                 Layout::view('partials.reject-modal-template-editor'),
@@ -266,11 +271,14 @@ class ApplicationListScreen extends Screen
             : $this->parseTemplate($template->body, $application);
         // Send notification if email present
         if ($application->candidate && $application->candidate->email) {
-            $application->candidate->notify(
-                new ApplicationRejectedNotification($application, $subject, $body)
-            );
+            $sendAt = $request->filled('send_at')
+                ? Carbon::parse($request->get('send_at'))
+                : Carbon::now()->addHour();
+            $notification = (new ApplicationRejectedNotification($application, $subject, $body))
+                ->delay($sendAt);
+            $application->candidate->notify($notification);
             $application->update(['rejection_sent' => true]);
-            Toast::info(__('Application rejected and notification sent.'));
+            Toast::info(__('Application rejected and notification scheduled.'));
         } else {
             Toast::info(__('Application rejected.'));
         }

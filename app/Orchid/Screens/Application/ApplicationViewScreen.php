@@ -8,6 +8,7 @@ use App\Notifications\ApplicationSharedNotification;
 use App\Orchid\Fields\Ckeditor;
 use App\Support\ApplicationStatus;
 use App\Models\Interview;
+use Carbon\Carbon;
 use Illuminate\Validation\Rule;
 use Orchid\Screen\Fields\DateTimer;
 use Orchid\Screen\Fields\TextArea;
@@ -587,7 +588,11 @@ class ApplicationViewScreen extends Screen
                 Ckeditor::make('body')
                     ->id('reject-body')
                     ->title(__('Message'))
-                    ->rows(10)
+                    ->rows(10),
+                DateTimer::make('send_at')
+                    ->enableTime()
+                    ->title(__('Send At'))
+                    ->help(__('Optional: schedule when rejection email is sent. Defaults to one hour from now.')),
             ]),
             Layout::view('partials.reject-modal-buttons', [
                 'application' => $this->application,
@@ -638,11 +643,14 @@ class ApplicationViewScreen extends Screen
             ? $request->get('body')
             : $this->parseTemplate($template->body, $application);
         if ($application->candidate && $application->candidate->email) {
-            $application->candidate->notify(
-                new ApplicationRejectedNotification($application, $subject, $body)
-            );
+            $sendAt = $request->filled('send_at')
+                ? Carbon::parse($request->get('send_at'))
+                : Carbon::now()->addHour();
+            $notification = (new ApplicationRejectedNotification($application, $subject, $body))
+                ->delay($sendAt);
+            $application->candidate->notify($notification);
             $application->update(['rejection_sent' => true]);
-            Toast::info(__('Application rejected and notification sent.'));
+            Toast::info(__('Application rejected and notification scheduled.'));
         } else {
             Toast::info(__('Application rejected.'));
         }

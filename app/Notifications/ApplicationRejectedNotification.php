@@ -3,11 +3,12 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\MailMessage;
 use App\Models\JobApplication;
 
-class ApplicationRejectedNotification extends Notification
+class ApplicationRejectedNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
