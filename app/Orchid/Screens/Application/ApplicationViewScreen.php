@@ -28,9 +28,9 @@ use Illuminate\Support\Facades\Notification;
 use App\Notifications\ApplicationRejectedNotification;
 use App\Notifications\ApplicationInterviewInvitationNotification;
 use Orchid\Screen\Fields\Select;
+use Orchid\Screen\Fields\Input;
 use App\Models\NotificationTemplate;
 use App\Models\AppointmentCalendar;
-use Orchid\Screen\Fields\Input;
 
 class ApplicationViewScreen extends Screen
 {
@@ -484,18 +484,31 @@ class ApplicationViewScreen extends Screen
                 ->staticBackdrop()
                 ->size(ModalLayout::SIZE_LG);
         }
+        // Prepare shared and available users for sharing
+        $sharedUsers = $this->application->sharedWith;
+        $sharedIds = $sharedUsers->pluck('id')->toArray();
+        $availableUsers = \App\Models\User::query()
+            ->where('id', '<>', Auth::id())
+            ->whereNotIn('id', $sharedIds)
+            ->pluck('name', 'id')
+            ->toArray();
         // Share Application modal
         $layouts[] = Layout::modal('shareModal', [
+            // List of users already shared
+            Layout::view('partials.share-modal-shared-list', [
+                'shared' => $sharedUsers,
+            ]),
             Layout::rows([
                 // Hidden field to pass application ID
                 Input::make('id')
                     ->type('hidden')
                     ->value($this->application->id),
                 Select::make('share_user_ids')
-                    ->fromModel(\App\Models\User::class, 'name')
+                    ->options($availableUsers)
                     ->multiple()
                     ->title(__('Share With'))
-                    ->help(__('Select users to share this application with.')),
+                    ->help(__('Select users to share this application with.'))
+                    ->empty(__('No additional users available'), ''),
             ]),
             // Share button
             Layout::view('partials.share-modal-buttons'),
