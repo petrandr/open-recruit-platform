@@ -15,6 +15,8 @@ const CK_EDITORS = new Map();
                 bindCKEditor(),
                 bindCommentEnter(),
                 bindCvModal(),
+                // Re-bind CKEditor on dynamic modal content
+                bindModalsCKEditor(),
                 bindScreeningQuestions(),
                 bindScheduleTemplateSelect()
             ]);
@@ -228,6 +230,23 @@ const CK_EDITORS = new Map();
                     }
                 });
             }
+            resolve();
+        });
+    }
+
+    /**
+     * Bind CKEditor initialization on dynamically loaded modals
+     */
+    function bindModalsCKEditor() {
+        return new Promise(resolve => {
+            document.querySelectorAll('.modal').forEach(modal => {
+                if (!modal._ckEditorBound) {
+                    modal._ckEditorBound = true;
+                    modal.addEventListener('shown.bs.modal', function () {
+                        bindCKEditor();
+                    });
+                }
+            });
             resolve();
         });
     }
