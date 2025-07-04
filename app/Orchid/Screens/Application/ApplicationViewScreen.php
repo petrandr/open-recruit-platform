@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Orchid\Screens\Application;
 
 use App\Models\JobApplication;
+use App\Notifications\ApplicationSharedNotification;
 use App\Orchid\Fields\Ckeditor;
 use App\Support\ApplicationStatus;
 use App\Models\Interview;
@@ -22,6 +23,7 @@ use Orchid\Screen\Sight;
 use Illuminate\Http\Request;
 use Orchid\Support\Facades\Toast;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
 
 use App\Notifications\ApplicationRejectedNotification;
 use App\Notifications\ApplicationInterviewInvitationNotification;
@@ -158,7 +160,39 @@ class ApplicationViewScreen extends Screen
                     ->toArray()
             );
 
+        // Share Application button (opens shareModal)
+        $commands[] = ModalToggle::make(__('Share Application'))
+            ->icon('bs.share')
+            ->modal('shareModal')
+            ->novalidate();
         return $commands;
+    }
+    /**
+     * Share this application with other users.
+     *
+     * @param \Illuminate\Http\Request $request
+     */
+    public function shareApplication(\Illuminate\Http\Request $request): void
+    {
+        $application = JobApplication::findOrFail($request->get('id'));
+        $userIds = $request->get('share_user_ids', []);
+        if (!is_array($userIds)) {
+            $userIds = [];
+        }
+        // Attach without detaching existing shares
+        $application->sharedWith()->syncWithoutDetaching($userIds);
+        // Notify selected users immediately (email & database)
+        $users = \App\Models\User::whereIn('id', $userIds)->get();
+        if ($users->isNotEmpty()) {
+            \Illuminate\Support\Facades\Notification::sendNow(
+                $users,
+                new \App\Notifications\ApplicationSharedNotification(
+                    $application,
+                    auth()->user()
+                )
+            );
+        }
+        Toast::info(__('Application has been shared.'));
     }
 
     /**
@@ -450,6 +484,28 @@ class ApplicationViewScreen extends Screen
                 ->staticBackdrop()
                 ->size(ModalLayout::SIZE_LG);
         }
+        // Share Application modal
+        $layouts[] = Layout::modal('shareModal', [
+            Layout::rows([
+                // Hidden field to pass application ID
+                Input::make('id')
+                    ->type('hidden')
+                    ->value($this->application->id),
+                Select::make('share_user_ids')
+                    ->fromModel(\App\Models\User::class, 'name')
+                    ->multiple()
+                    ->title(__('Share With'))
+                    ->help(__('Select users to share this application with.')),
+            ]),
+            // Share button
+            Layout::view('partials.share-modal-buttons'),
+        ])
+            ->title(__('Share Application'))
+            ->withoutApplyButton()
+            ->withoutCloseButton()
+            ->staticBackdrop()
+            ->size(ModalLayout::SIZE_LG);
+
         // Rejection modal: select template, preview and modify before sending
         // Fetch rejection templates and pre-render placeholders for preview
         $rawTemplates = NotificationTemplate::where('type', 'rejection')->get(['id', 'subject', 'body']);

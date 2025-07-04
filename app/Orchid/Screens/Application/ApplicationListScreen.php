@@ -47,12 +47,16 @@ class ApplicationListScreen extends Screen
         $query = JobApplication::with('jobListing', 'candidate')
             ->filters(ApplicationFiltersLayout::class)
             ->defaultSort('id', 'desc');
-        // Restrict to applications for accessible jobs
+        // Restrict to applications for accessible jobs OR shared with the user
+        $userId = auth()->id();
         $roleIds = auth()->user()->roles()->pluck('id')->toArray();
-        $query->where(function ($q) use ($roleIds) {
-              $q->WhereHas('jobListing.roles', function ($q2) use ($roleIds) {
-                  $q2->whereIn('roles.id', $roleIds);
-              });
+        $query->where(function ($q) use ($roleIds, $userId) {
+            $q->whereHas('jobListing.roles', function ($q2) use ($roleIds) {
+                $q2->whereIn('roles.id', $roleIds);
+            })
+            ->orWhereHas('sharedWith', function ($q3) use ($userId) {
+                $q3->where('user_id', $userId);
+            });
         });
 
         if ($name = $request->get('candidate')) {

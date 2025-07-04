@@ -99,4 +99,18 @@ class User extends Authenticatable
     {
         return $this->hasMany(AppointmentCalendar::class);
     }
+    /**
+     * Applications that have been shared with this user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function sharedApplications()
+    {
+        return $this->belongsToMany(
+            \App\Models\JobApplication::class,
+            'job_application_user',
+            'user_id',
+            'job_application_id'
+        )->withTimestamps();
+    }
 }

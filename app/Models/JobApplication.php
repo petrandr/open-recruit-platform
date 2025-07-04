@@ -159,6 +159,20 @@ class JobApplication extends Model
     {
         return $this->hasMany(ApplicationStatusLog::class, 'application_id')->orderBy('created_at');
     }
+    /**
+     * Users with whom this application has been shared.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function sharedWith()
+    {
+        return $this->belongsToMany(
+            \App\Models\User::class,
+            'job_application_user',
+            'job_application_id',
+            'user_id'
+        )->withTimestamps();
+    }
 
     /**
      * Calculate fit based on screening question answers.
