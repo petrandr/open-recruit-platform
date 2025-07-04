@@ -16,6 +16,7 @@ use Orchid\Screen\Screen;
 use Orchid\Support\Facades\Layout;
 // use App\Orchid\Layouts\JobListing\JobListingScreeningLayout; // removed repeater dependency
 use Orchid\Support\Facades\Toast;
+use Orchid\Platform\Models\Role;
 
 class JobListingEditScreen extends Screen
 {
@@ -29,16 +30,28 @@ class JobListingEditScreen extends Screen
     /**
      * Query data for the screen.
      *
-     * @param JobListing $job
      * @return array<string, mixed>
      */
-    public function query(JobListing $job): iterable
+    public function query(): iterable
     {
-        // If editing an existing job, eager load screening questions and application count
-        if ($job->exists) {
-            $job->load('screeningQuestions');
+        // Retrieve route parameter for job (model or ID)
+        $routeParam = request()->route()->parameter('job');
+        if ($routeParam instanceof JobListing) {
+            $job = $routeParam;
+        } elseif (!empty($routeParam)) {
+            $job = JobListing::find($routeParam);
+        }
+        // Fallback to new model for creation
+        if (empty($job)) {
+            $job = new JobListing();
+        } else {
+            // Eager-load relations and application count for editing
+            $job->load(['screeningQuestions', 'roles']);
             $job->loadCount('applications');
         }
+        // Prepare selected role IDs (empty for new job)
+        $job->setAttribute('roles', $job->roles->pluck('id')->toArray());
+
         return [
             'job' => $job,
         ];
@@ -185,8 +198,19 @@ class JobListingEditScreen extends Screen
         ]);
 
         $job->fill($request->input('job'))->save();
-        // Sync allowed roles
-        $job->roles()->sync($request->input('job.roles', []));
+        // Sync allowed roles (automatically include admin role if it exists)
+        $selectedRoles = $request->input('job.roles', []);
+        // Ensure admin role always assigned
+        $adminRole = Role::where('slug', 'admin')->first();
+        if ($adminRole) {
+            $selectedRoles = array_unique(
+                array_merge(
+                    is_array($selectedRoles) ? $selectedRoles : [],
+                    [$adminRole->id]
+                )
+            );
+        }
+        $job->roles()->sync($selectedRoles);
 
         // Handle screening questions
         $screeningData = $request->input('screeningQuestions', []);

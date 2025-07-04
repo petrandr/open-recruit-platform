@@ -111,15 +111,23 @@ Route::screen('jobs/create', JobListingEditScreen::class)
 // Platform > Recruitment > Jobs > Edit
 Route::screen('jobs/{job}/edit', JobListingEditScreen::class)
     ->name('platform.jobs.edit')
-    ->breadcrumbs(fn(Trail $trail, JobListing $job) => $trail
-        ->parent('platform.jobs')
-        ->push($job->title, route('platform.jobs.edit', $job)));
+    ->breadcrumbs(function (Trail $trail, $job) {
+        // Ensure $job is a model instance
+        $job = $job instanceof JobListing ? $job : JobListing::findOrFail($job);
+        return $trail
+            ->parent('platform.jobs')
+            ->push($job->title, route('platform.jobs.edit', $job));
+    });
 // Platform > Recruitment > Jobs > View
 Route::screen('jobs/{job}', JobListingViewScreen::class)
     ->name('platform.jobs.view')
-    ->breadcrumbs(fn(Trail $trail, JobListing $job) => $trail
-        ->parent('platform.jobs')
-        ->push($job->title, route('platform.jobs.view', $job)));
+    ->breadcrumbs(function (Trail $trail, $job) {
+        // Ensure $job is a model instance
+        $job = $job instanceof JobListing ? $job : JobListing::findOrFail($job);
+        return $trail
+            ->parent('platform.jobs')
+            ->push($job->title, route('platform.jobs.view', $job));
+    });
 // Platform > Recruitment > Jobs
 Route::screen('jobs', JobListingListScreen::class)
     ->name('platform.jobs')

@@ -78,10 +78,15 @@ class JobListingGeneralLayout extends Rows
                 ->fromModel(User::class, 'name')
                 ->multiple(),
             // Roles allowed to access this job
-            Relation::make('job.roles')
+            Select::make('job.roles')
                 ->title(__('Allowed Roles'))
-                ->fromModel(Role::class, 'name')
                 ->multiple()
+                ->options(
+                    // Exclude admin role from selectable options
+                    Role::where('slug', '<>', 'admin')
+                        ->pluck('name', 'id')
+                        ->toArray()
+                )
                 ->help(__('Select roles permitted to access this job applications')),
 
         ];
