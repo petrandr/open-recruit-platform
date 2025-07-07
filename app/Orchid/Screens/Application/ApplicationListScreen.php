@@ -19,6 +19,7 @@ use Orchid\Screen\Fields\TextArea;
 use Orchid\Screen\Fields\DateTimer;
 use Orchid\Screen\Layouts\Modal as ModalLayout;
 use Carbon\Carbon;
+use App\Services\ApplicationService;
 use App\Notifications\ApplicationRejectedNotification;
 
 class ApplicationListScreen extends Screen
@@ -254,33 +255,22 @@ class ApplicationListScreen extends Screen
      * Reject application and optionally send rejection email.
      *
      * @param Request $request
+     * @param ApplicationService $applicationService
      */
-    public function rejectWithEmail(Request $request): void
+    public function rejectWithEmail(Request $request, ApplicationService $applicationService): void
     {
         $application = JobApplication::with('candidate')->findOrFail($request->get('id'));
-        // Update status to rejected
-        $application->update(['status' => 'rejected']);
-        // Fetch template
-        $template = NotificationTemplate::findOrFail($request->get('template_id'));
-        // Determine subject and body, allow overrides
-        $subject = $request->filled('subject')
-            ? $request->get('subject')
-            : $this->parseTemplate($template->subject, $application);
-        $body = $request->filled('body')
-            ? $request->get('body')
-            : $this->parseTemplate($template->body, $application);
-        // Send notification if email present
-        if ($application->candidate && $application->candidate->email) {
-            $sendAt = $request->filled('send_at')
-                ? Carbon::parse($request->get('send_at'))
-                : Carbon::now()->addHour();
-            $notification = (new ApplicationRejectedNotification($application, $subject, $body))
-                ->delay($sendAt);
-            $application->candidate->notify($notification);
-            $application->update(['rejection_sent' => true]);
-            Toast::info(__('Application rejected and notification scheduled.'));
-        } else {
-            Toast::info(__('Application rejected.'));
-        }
+        $templateId = $request->get('template_id');
+        $subjectOverride = $request->filled('subject') ? $request->get('subject') : null;
+        $bodyOverride = $request->filled('body') ? $request->get('body') : null;
+        $sendAt = $request->filled('send_at') ? Carbon::parse($request->get('send_at')) : null;
+        $message = $applicationService->rejectWithEmail(
+            $application,
+            (int) $templateId,
+            $subjectOverride,
+            $bodyOverride,
+            $sendAt
+        );
+        Toast::info($message);
     }
 }
