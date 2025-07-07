@@ -35,6 +35,10 @@ class PlatformProvider extends OrchidServiceProvider
     public function menu(): array
     {
         $menus = [
+            Menu::make('Dashboard')
+                ->icon('bs.speedometer')
+                ->route(config('platform.index')),
+
             Menu::make(__('Jobs'))
                 ->icon('bs.briefcase')
                 ->route('platform.jobs')
@@ -166,7 +170,8 @@ class PlatformProvider extends OrchidServiceProvider
                 ->addPermission('platform.activity-logs', __('Activity Logs'))
                 ->addPermission('platform.notification-logs', __('Notification Logs'))
                 ->addPermission('platform.notification.templates', __('Notification Templates'))
-                ->addPermission('platform.calendars', __('Calendars')),
+                ->addPermission('platform.calendars', __('Calendars'))
+                ->addPermission('platform.pending-jobs', __('View Pending Queue Jobs')),
             ItemPermission::group(__('Recruitment'))
                 ->addPermission('platform.jobs', __('View Jobs'))
                 ->addPermission('platform.jobs.create', __('Create Jobs'))
