@@ -178,9 +178,7 @@ class JobListingViewScreen extends Screen
         return [
             Layout::legend('job', $general)->title(__('General Information')),
             Layout::legend('job', $details)->title(__('Details & Perks')),
-            !empty($screening)
-                ? Layout::legend('job', $screening)->title(__('Screening Questions'))
-                : null,
+            Layout::legend('job', $screening)->title(__('Screening Questions'))
         ];
     }
     /**
