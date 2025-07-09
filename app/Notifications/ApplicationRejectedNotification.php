@@ -86,4 +86,10 @@ class ApplicationRejectedNotification extends Notification implements ShouldQueu
     {
         return $this->application;
     }
+
+    public function postNotificationSentAction(): void
+    {
+        // Mark as sent
+        $this->application->update(['rejection_sent' => true]);
+    }
 }

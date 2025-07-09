@@ -1,7 +1,7 @@
 @php
     use Orchid\Screen\Actions\Button;
     // Prepare action buttons with explicit routes to avoid including filter query parameters
-    $rejectOnly = Button::make(__('Reject Only'))
+    $rejectOnly = Button::make(__('Reject without Email'))
         ->icon('bs.x-circle')
         ->action(route('platform.applications', [
             'method' => 'changeStatus',

@@ -10,6 +10,7 @@ use App\Support\ApplicationStatus;
 use App\Models\Interview;
 use Carbon\Carbon;
 use App\Services\ApplicationService;
+use App\Services\NotificationJobService;
 use Illuminate\Validation\Rule;
 use Orchid\Screen\Fields\DateTimer;
 use Orchid\Screen\Fields\TextArea;
@@ -25,9 +26,8 @@ use Orchid\Screen\Sight;
 use Illuminate\Http\Request;
 use Orchid\Support\Facades\Toast;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Notification;
+use App\Orchid\Screens\Concerns\CancelsPendingJobs;
 
-use App\Notifications\ApplicationRejectedNotification;
 use App\Notifications\ApplicationInterviewInvitationNotification;
 use Orchid\Screen\Fields\Select;
 use Orchid\Screen\Fields\Input;
@@ -36,6 +36,13 @@ use App\Models\AppointmentCalendar;
 
 class ApplicationViewScreen extends Screen
 {
+    use CancelsPendingJobs;
+    /**
+     * Pending notification jobs for this application.
+     *
+     * @var \Illuminate\Support\Collection
+     */
+    public $pendingNotifications;
     /**
      * The application model instance.
      *
@@ -78,11 +85,17 @@ class ApplicationViewScreen extends Screen
             ->get();
         // Fetch interviews for this application
         $interviews = $application->interviews()->with('interviewer')->get();
+        // Fetch pending notification jobs for this application
+        $pendingNotifications = app(NotificationJobService::class)
+            ->getForApplication($application);
+        // Store for use in layout
+        $this->pendingNotifications = $pendingNotifications;
         return [
-            'application' => $application,
-            'otherApplications' => $otherApplications,
-            'statusLogs' => $application->statusLogs,
-            'interviews' => $interviews,
+            'application'          => $application,
+            'otherApplications'    => $otherApplications,
+            'statusLogs'           => $application->statusLogs,
+            'interviews'           => $interviews,
+            'pendingNotifications' => $pendingNotifications,
         ];
     }
 
@@ -434,6 +447,34 @@ class ApplicationViewScreen extends Screen
         ];
         // Combine tabs and sidebar into two-column layout
         $layouts = [];
+        // Show pending notification jobs for this application, if any
+        if ($this->pendingNotifications->isNotEmpty()) {
+            $layouts[] =
+                Layout::table('pendingNotifications', [
+                    TD::make('id', __('Job ID'))
+                        ->render(fn($n) => $n->id)
+                        ->width('50px'),
+                    TD::make('notification', __('Notification'))
+                        ->render(fn($n) => $n->notification),
+                    TD::make('channels', __('Channels'))
+                        ->render(fn($n) => is_array($n->channels) && count($n->channels)
+                            ? implode(', ', $n->channels)
+                            : '-'
+                        ),
+                    TD::make('scheduled_at', __('Scheduled At'))
+                        ->render(fn($n) => $n->scheduled_at->toDateTimeString()),
+                    TD::make('actions', __('Actions'))
+                        ->align(TD::ALIGN_CENTER)
+                        ->width('100px')
+                        ->render(fn($n) => Button::make(__('Cancel'))
+                            ->icon('bs.x-circle')
+                            ->confirm(__('Are you sure you want to cancel this notification?'))
+                            ->novalidate()
+                            ->method('cancelJob', ['id' => $n->id])
+                        ),
+                ])->title('Pending Notifications');
+
+        }
         if ($this->application->rejection_sent) {
             $layouts[] = Layout::view('partials.application-rejected-warning');
         }
@@ -592,6 +633,7 @@ class ApplicationViewScreen extends Screen
                     ->rows(10),
                 DateTimer::make('send_at')
                     ->enableTime()
+                    ->value(now()->addHour())
                     ->title(__('Send At'))
                     ->help(__('Optional: schedule when rejection email is sent. Defaults to one hour from now.')),
             ]),

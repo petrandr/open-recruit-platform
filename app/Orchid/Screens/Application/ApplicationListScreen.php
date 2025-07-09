@@ -147,6 +147,7 @@ class ApplicationListScreen extends Screen
                         ->title(__('Message')),
                     DateTimer::make('send_at')
                         ->enableTime()
+                        ->value(now()->addHour())
                         ->title(__('Send At'))
                         ->help(__('Optional: schedule when rejection email is sent. Defaults to one hour from now.')),
                 ]),

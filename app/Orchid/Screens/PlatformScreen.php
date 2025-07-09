@@ -4,20 +4,16 @@ declare(strict_types=1);
 
 namespace App\Orchid\Screens;
 
-use App\Models\JobApplication;
 use Orchid\Screen\Screen;
 use Orchid\Support\Facades\Layout;
 use Orchid\Screen\TD;
-use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
 use Orchid\Screen\Actions\Link;
-use Illuminate\Notifications\SendQueuedNotifications;
 use Orchid\Screen\Actions\Button;
-use Illuminate\Http\Request;
-use Orchid\Support\Facades\Toast;
+use App\Orchid\Screens\Concerns\CancelsPendingJobs;
 
 class PlatformScreen extends Screen
 {
+    use CancelsPendingJobs;
     /**
      * Fetch data to be displayed on the screen.
      *
@@ -25,48 +21,8 @@ class PlatformScreen extends Screen
      */
     public function query(): iterable
     {
-        $jobs = DB::table('jobs')
-            ->orderBy('available_at', 'asc')
-            ->get()
-            ->map(function ($job) {
-                $payload = json_decode($job->payload, true) ?? [];
-                // Only include notification jobs
-                if (data_get($payload, 'data.commandName') !== SendQueuedNotifications::class) {
-                    return null;
-                }
-                $serialized = data_get($payload, 'data.command');
-                try {
-                    $queued = unserialize($serialized);
-                } catch (\Throwable $e) {
-                    return null;
-                }
-                if (! $queued instanceof SendQueuedNotifications) {
-                    return null;
-                }
-                $notification = $queued->notification;
-                if (! method_exists($notification, 'getApplication')) {
-                    return null;
-                }
-                $app = $notification->getApplication();
-                if (! $app instanceof JobApplication) {
-                    return null;
-                }
-                $candidate = $app->candidate;
-
-                return (object) [
-                    'id'              => $job->id,
-                    'notification'    => get_class($notification),
-                    // Channels this notification will be sent through
-                    'channels'        => $queued->channels ?? [],
-                    'scheduled_at'    => Carbon::createFromTimestamp($job->available_at, config('app.timezone')),
-                    'attempts'        => $job->attempts,
-                    'application_id'  => $app->id,
-                    'candidate_name'  => $candidate ? ($candidate->first_name . ' ' . $candidate->last_name) : null,
-                    'candidate_id'    => $candidate ? $candidate->id : null,
-                ];
-            })
-            ->filter()
-            ->values();
+        // Retrieve all pending notification jobs
+        $jobs = app(\App\Services\NotificationJobService::class)->getAll();
 
         return [
             'jobs' => $jobs,
@@ -160,16 +116,5 @@ class PlatformScreen extends Screen
             ->description('List of pending notification jobs with scheduled time and related candidate/application');
         }
         return $layouts;
-    }
-    /**
-     * Cancel a queued notification job.
-     *
-     * @param Request $request
-     */
-    public function cancelJob(Request $request): void
-    {
-        $id = $request->get('id');
-        DB::table('jobs')->where('id', $id)->delete();
-        Toast::info(__('Job :id cancelled.', ['id'=>$id]));
     }
 }

@@ -35,7 +35,6 @@ class LogNotificationToDatabase
                 $data = $event->notification->toArray($event->notifiable);
             }
             $event->notifiable->notifications()->create([
-                // UUID primary key for notifications table
                 'id'      => (string) Str::uuid(),
                 'type'    => get_class($event->notification),
                 'data'    => $data,
@@ -43,6 +42,14 @@ class LogNotificationToDatabase
             ]);
         } catch (\Throwable $e) {
             Log::error('Failed to log notification to DB: ' . $e->getMessage());
+        }
+
+        try {
+            if (method_exists($event->notification, 'postNotificationSentAction')) {
+                $event->notification->postNotificationSentAction();
+            }
+        } catch (\Throwable $e) {
+            Log::error('Failed to run post notification actions: ' . $e->getMessage());
         }
     }
 }

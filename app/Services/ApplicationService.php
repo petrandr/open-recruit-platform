@@ -44,9 +44,8 @@ class ApplicationService
             $notification = (new ApplicationRejectedNotification($application, $subject, $body))
                 ->delay($sendAt);
             $application->candidate->notify($notification);
-            // Mark as sent
-            $application->update(['rejection_sent' => true]);
-            return __('Application rejected and notification scheduled.');
+
+            return __('Rejection notification has been scheduled.');
         }
 
         // No email sent
