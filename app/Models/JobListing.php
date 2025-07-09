@@ -24,6 +24,7 @@ class JobListing extends Model
      */
     protected $fillable = [
         'title',
+        'slug',
         'short_description',
         'headline',
         'responsibilities',

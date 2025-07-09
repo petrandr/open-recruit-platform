@@ -15,7 +15,7 @@ class JobListingController extends Controller
     public function index(): JsonResponse
     {
         $jobs = JobListing::where('status', 'active')
-            ->select('id', 'title', 'short_description', 'status', 'date_opened', 'job_type', 'workplace', 'location', 'created_at', 'updated_at')
+            ->select('id', 'title', 'slug', 'short_description', 'status', 'date_opened', 'job_type', 'workplace', 'location', 'created_at', 'updated_at')
             ->orderBy('id', 'desc')
             ->get();
 

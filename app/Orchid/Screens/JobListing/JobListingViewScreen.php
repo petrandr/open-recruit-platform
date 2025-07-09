@@ -120,6 +120,7 @@ class JobListingViewScreen extends Screen
         // General information
         $general = [
             Sight::make('title', __('Title')),
+            Sight::make('slug', __('Slug')),
             Sight::make('short_description', __('Short Description'))
                 ->render(fn(JobListing $job) => $job->short_description),
             Sight::make('headline', __('Headline'))

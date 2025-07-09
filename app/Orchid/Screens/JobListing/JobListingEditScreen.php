@@ -10,6 +10,8 @@ use App\Orchid\Layouts\JobListing\JobListingDescriptionLayout;
 use App\Orchid\Layouts\JobListing\JobListingDetailedLayout;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 use Orchid\Screen\Actions\Button;
 use Orchid\Screen\Actions\Link;
 use Orchid\Screen\Screen;
@@ -197,7 +199,20 @@ class JobListingEditScreen extends Screen
             'job.roles.*'           => 'integer|exists:roles,id',
         ]);
 
-        $job->fill($request->input('job'))->save();
+        // Prepare job data and always generate slug from title
+        $data = $validated['job'];
+        $baseSlug = Str::slug($data['title']);
+        $slug     = $baseSlug;
+        $counter  = 1;
+        while (DB::table('job_listings')
+            ->where('slug', $slug)
+            ->where('id', '<>', $job->id)
+            ->exists()
+        ) {
+            $slug = $baseSlug . '-' . $counter++;
+        }
+        $data['slug'] = $slug;
+        $job->fill($data)->save();
         // Sync allowed roles (automatically include admin role if it exists)
         $selectedRoles = $request->input('job.roles', []);
         // Ensure admin role always assigned
