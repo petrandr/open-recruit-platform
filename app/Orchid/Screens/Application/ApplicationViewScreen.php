@@ -471,6 +471,7 @@ class ApplicationViewScreen extends Screen
                             ->confirm(__('Are you sure you want to cancel this notification?'))
                             ->novalidate()
                             ->method('cancelJob', ['id' => $n->id])
+                            ->canSee(auth()->user()->hasAccess('platform.pending-jobs'))
                         ),
                 ])->title('Pending Notifications');
 

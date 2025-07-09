@@ -18,6 +18,10 @@ trait CancelsPendingJobs
      */
     public function cancelJob(Request $request): void
     {
+        // Authorize cancellation by permission
+        if (! $request->user() || ! $request->user()->hasAccess('platform.pending-jobs')) {
+            abort(403);
+        }
         $id = $request->get('id');
         // Delete the job from the queue table
         DB::table('jobs')->where('id', $id)->delete();
