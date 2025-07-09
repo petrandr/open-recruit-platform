@@ -39,7 +39,7 @@ class ApplicationSharedNotification extends Notification
      */
     public function via($notifiable): array
     {
-        return ['mail','database'];
+        return ['mail'];
     }
 
     /**
@@ -84,5 +84,14 @@ class ApplicationSharedNotification extends Notification
         return [
             'template_body' => $fullMessage,
         ];
+    }
+    /**
+     * Retrieve the associated JobApplication.
+     *
+     * @return \App\Models\JobApplication
+     */
+    public function getApplication(): \App\Models\JobApplication
+    {
+        return $this->application;
     }
 }

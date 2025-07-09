@@ -3,7 +3,6 @@
 namespace App\Providers;
 
 use App\Services\ActivityLogExcluder;
-use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Event;

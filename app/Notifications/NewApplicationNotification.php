@@ -31,7 +31,7 @@ class NewApplicationNotification extends Notification
      */
     public function via($notifiable)
     {
-        return ['mail', 'database'];
+        return ['mail'];
     }
 
     /**
@@ -43,7 +43,7 @@ class NewApplicationNotification extends Notification
     public function toMail($notifiable)
     {
         $job = $this->application->jobListing;
-        $fullName = $this->application->first_name . ' ' . $this->application->last_name;
+        $fullName = $this->application->candidate->first_name . ' ' . $this->application->candidate->last_name;
 
         return (new MailMessage)
             ->subject('New Application for ' . $job->title . ': ' . $fullName)
@@ -72,5 +72,14 @@ class NewApplicationNotification extends Notification
         return [
             'template_body' => $fullMessage,
         ];
+    }
+    /**
+     * Retrieve the associated JobApplication.
+     *
+     * @return \App\Models\JobApplication
+     */
+    public function getApplication(): \App\Models\JobApplication
+    {
+        return $this->application;
     }
 }

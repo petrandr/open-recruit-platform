@@ -42,7 +42,7 @@ class ApplicationInterviewInvitationNotification extends Notification
      */
     public function via($notifiable): array
     {
-        return ['mail', 'database'];
+        return ['mail'];
     }
 
     /**
@@ -71,5 +71,14 @@ class ApplicationInterviewInvitationNotification extends Notification
             'template_subject' => $this->templateSubject,
             'template_body'    => $this->templateBody,
         ];
+    }
+    /**
+     * Retrieve the associated JobApplication.
+     *
+     * @return \App\Models\JobApplication
+     */
+    public function getApplication(): \App\Models\JobApplication
+    {
+        return $this->application;
     }
 }
