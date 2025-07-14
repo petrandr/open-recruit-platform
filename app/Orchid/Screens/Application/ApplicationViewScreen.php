@@ -276,8 +276,11 @@ class ApplicationViewScreen extends Screen
             Sight::make('candidate.last_name', __('Last Name')),
             Sight::make('candidate.email', __('Email')),
             Sight::make('candidate.mobile_number', __('Mobile Number')),
+            Sight::make('country', __('Candidate Location'))->render(function () {
+                return $this->application->country .' / '.$this->application->city;
+            }),
+            Sight::make('jobListing.location', __('Job Location')),
             Sight::make('jobListing.job_type', __('Job Type')),
-            Sight::make('jobListing.location', __('Location')),
             Sight::make('status', __('Status'))->render(function () {
                 $status = $this->application->status;
                 $statuses = ApplicationStatus::all();
