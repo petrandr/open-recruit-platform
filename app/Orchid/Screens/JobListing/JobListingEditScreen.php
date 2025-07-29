@@ -19,6 +19,7 @@ use Orchid\Support\Facades\Layout;
 // use App\Orchid\Layouts\JobListing\JobListingScreeningLayout; // removed repeater dependency
 use Orchid\Support\Facades\Toast;
 use Orchid\Platform\Models\Role;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class JobListingEditScreen extends Screen
 {
@@ -47,6 +48,18 @@ class JobListingEditScreen extends Screen
         if (empty($job)) {
             $job = new JobListing();
         } else {
+            // Restrict to interviews for accessible jobs
+            $roleIds = auth()->user()->roles()->pluck('id')->toArray();
+            $accessibleJob = JobListing::where('id', $job->id)
+                ->whereHas('roles', function ($q) use ($roleIds) {
+                    $q->whereIn('roles.id', $roleIds);
+                })
+                ->first();
+
+            if (!$accessibleJob) {
+                // Throw 403 Access Denied
+                throw new HttpException(403, 'Access Denied');
+            }
             // Eager-load relations and application count for editing
             $job->load(['screeningQuestions', 'roles']);
             $job->loadCount('applications');

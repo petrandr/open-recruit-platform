@@ -11,6 +11,7 @@ use Orchid\Screen\Actions\Link;
 use Orchid\Support\Facades\Toast;
 use Orchid\Screen\Actions\Button;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 /**
  * Display a full view of a job listing.
@@ -32,6 +33,18 @@ class JobListingViewScreen extends Screen
      */
     public function query(JobListing $job): iterable
     {
+        // Restrict to interviews for accessible jobs
+        $roleIds = auth()->user()->roles()->pluck('id')->toArray();
+        $accessibleJob = JobListing::where('id', $job->id)
+            ->whereHas('roles', function ($q) use ($roleIds) {
+                $q->whereIn('roles.id', $roleIds);
+            })
+            ->first();
+
+        if (!$accessibleJob) {
+            // Throw 403 Access Denied
+            throw new HttpException(403, 'Access Denied');
+        }
         // Load related counts and questions
         $job->loadCount('applications');
         $job->load('screeningQuestions');

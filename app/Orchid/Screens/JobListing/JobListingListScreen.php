@@ -49,11 +49,17 @@ class JobListingListScreen extends Screen
      */
     public function query(): iterable
     {
-        return [
-            'jobs' => JobListing::withCount('applications')
-                ->defaultSort('id', 'desc')
-                ->paginate(),
-        ];
+        $query = JobListing::withCount('applications')
+            ->defaultSort('id', 'desc');
+
+        // Restrict to interviews for accessible jobs
+        $roleIds = auth()->user()->roles()->pluck('id')->toArray();
+        $query->where(function ($q) use ($roleIds) {
+            $q->WhereHas('roles', function ($q2) use ($roleIds) {
+                $q2->whereIn('roles.id', $roleIds);
+            });
+        });
+        return ['jobs' => $query->paginate()];
     }
 
     /**
