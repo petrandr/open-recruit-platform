@@ -5,6 +5,8 @@ namespace App\Models;
 use App\Orchid\Filters\Types\InsensitiveLike;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\Industry;
 use Orchid\Filters\Filterable;
 use Orchid\Screen\AsSource;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -37,6 +39,7 @@ class JobListing extends Model
         'status',
         'location',
         'who_to_notify',
+        'industry_id',
     ];
 
     /**
@@ -101,6 +104,15 @@ class JobListing extends Model
     public function roles(): BelongsToMany
     {
         return $this->belongsToMany(Role::class, 'job_listing_role', 'job_listing_id', 'role_id');
+    }
+    /**
+     * JobListing belongs to an Industry.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function industry(): BelongsTo
+    {
+        return $this->belongsTo(Industry::class);
     }
     /**
      * Get the title with status in parentheses.

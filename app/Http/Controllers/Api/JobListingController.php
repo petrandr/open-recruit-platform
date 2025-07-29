@@ -15,11 +15,42 @@ class JobListingController extends Controller
     public function index(): JsonResponse
     {
         $jobs = JobListing::where('status', 'active')
-            ->select('id', 'title', 'slug', 'short_description', 'status', 'date_opened', 'job_type', 'workplace', 'location', 'created_at', 'updated_at')
+            ->with('industry')
+            ->select(
+                'id',
+                'title',
+                'slug',
+                'short_description',
+                'status',
+                'date_opened',
+                'job_type',
+                'workplace',
+                'location',
+                'industry_id',  // needed to load industry relationship
+                'created_at',
+                'updated_at'
+            )
             ->orderBy('id', 'desc')
             ->get();
 
-        return response()->json($jobs);
+        // Transform response: replace industry relation with its name under 'industry'
+        $payload = $jobs->map(function (JobListing $job) {
+            return [
+                'id'                => $job->id,
+                'title'             => $job->title,
+                'slug'              => $job->slug,
+                'short_description' => $job->short_description,
+                'status'            => $job->status,
+                'date_opened'       => $job->date_opened,
+                'job_type'          => $job->job_type,
+                'workplace'         => $job->workplace,
+                'location'          => $job->location,
+                'industry'          => optional($job->industry)->name,
+                'created_at'        => $job->created_at,
+                'updated_at'        => $job->updated_at,
+            ];
+        })->all();
+        return response()->json($payload);
     }
 
     /**
@@ -33,8 +64,13 @@ class JobListingController extends Controller
             abort(404);
         }
 
-        $job->load(['screeningQuestions']);
+        // Eager load related entities including industry
+        $job->load(['screeningQuestions', 'industry']);
 
-        return response()->json($job);
+        // Transform response: include industry as name only
+        $data = $job->toArray();
+        $data['industry'] = optional($job->industry)->name;
+        unset($data['industry_id']);
+        return response()->json($data);
     }
 }

@@ -73,6 +73,12 @@ class PlatformProvider extends OrchidServiceProvider
                 ->route('platform.calendars')
                 ->permission('platform.calendars')
                 ->set('group', 'Recruitment'),
+            // Industries management
+            Menu::make(__('Industries'))
+                ->icon('bs.building')
+                ->route('platform.industries')
+                ->permission('platform.industries')
+                ->set('group', 'Recruitment'),
 
             Menu::make(__('Users'))
                 ->icon('bs.people')
@@ -180,7 +186,8 @@ class PlatformProvider extends OrchidServiceProvider
                 ->addPermission('platform.candidates', __('Candidates'))
                 ->addPermission('platform.applications', __('Applications'))
                 ->addPermission('platform.interviews', __('Interviews'))
-                ->addPermission('platform.my_interviews', __('My Interviews')),
+                ->addPermission('platform.my_interviews', __('My Interviews'))
+                ->addPermission('platform.industries', __('Industries')),
         ];
     }
 

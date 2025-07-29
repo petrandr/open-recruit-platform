@@ -199,6 +199,7 @@ class JobListingEditScreen extends Screen
             'job.workplace'         => ['required', 'array'],
             'job.workplace.*'       => [Rule::in(['On-Site', 'Hybrid', 'Remote'])],
             'job.location'          => 'required|string|max:255',
+            'job.industry_id'       => ['required', 'integer', 'exists:industries,id'],
             'job.date_opened'       => 'nullable|date',
             'job.responsibilities'  => 'required|string',
             'job.requirements'      => 'required|string',

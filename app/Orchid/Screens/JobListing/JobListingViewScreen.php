@@ -47,7 +47,7 @@ class JobListingViewScreen extends Screen
         }
         // Load related counts and questions
         $job->loadCount('applications');
-        $job->load('screeningQuestions');
+        $job->load(['screeningQuestions', 'industry']);
         return [
             'job' => $job,
         ];
@@ -133,6 +133,8 @@ class JobListingViewScreen extends Screen
         // General information
         $general = [
             Sight::make('title', __('Title')),
+            Sight::make('industry.name', __('Industry'))
+                ->render(fn(JobListing $job) => optional($job->industry)->name ?? '-'),
             Sight::make('slug', __('Slug')),
             Sight::make('short_description', __('Short Description'))
                 ->render(fn(JobListing $job) => $job->short_description),

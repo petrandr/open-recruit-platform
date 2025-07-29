@@ -9,6 +9,7 @@ use Orchid\Screen\Fields\Input;
 use Orchid\Screen\Fields\Select;
 use Orchid\Screen\Fields\DateTimer;
 use Orchid\Screen\Fields\Relation;
+use App\Models\Industry;
 use App\Models\User;
 use Orchid\Platform\Models\Role;
 
@@ -36,6 +37,10 @@ class JobListingGeneralLayout extends Rows
                 ])
                 ->required()
                 ->title(__('Job Type')),
+            Relation::make('job.industry_id')
+                ->title(__('Industry'))
+                ->fromModel(Industry::class, 'name')
+                ->required(),
 
             Select::make('job.workplace')
                 ->options([

@@ -38,6 +38,8 @@ use App\Orchid\Screens\AppointmentCalendar\AppointmentCalendarListScreen;
 use App\Orchid\Screens\AppointmentCalendar\AppointmentCalendarEditScreen;
 use App\Orchid\Screens\NotificationTemplate\NotificationTemplateListScreen as NotificationTemplateListScreen;
 use App\Orchid\Screens\NotificationTemplate\NotificationTemplateEditScreen as NotificationTemplateEditScreen;
+use App\Orchid\Screens\Industry\IndustryListScreen;
+use App\Orchid\Screens\Industry\IndustryEditScreen;
 
 /*
 |--------------------------------------------------------------------------
@@ -134,6 +136,24 @@ Route::screen('jobs', JobListingListScreen::class)
     ->breadcrumbs(fn(Trail $trail) => $trail
         ->parent('platform.index')
         ->push(__('Jobs'), route('platform.jobs')));
+// Platform > Recruitment > Industries
+Route::screen('industries', IndustryListScreen::class)
+    ->name('platform.industries')
+    ->breadcrumbs(fn(Trail $trail) => $trail
+        ->parent('platform.index')
+        ->push(__('Industries'), route('platform.industries')));
+// Platform > Recruitment > Industries > Create
+Route::screen('industries/create', IndustryEditScreen::class)
+    ->name('platform.industries.create')
+    ->breadcrumbs(fn(Trail $trail) => $trail
+        ->parent('platform.industries')
+        ->push(__('Create'), route('platform.industries.create')));
+// Platform > Recruitment > Industries > Edit
+Route::screen('industries/{industry}/edit', IndustryEditScreen::class)
+    ->name('platform.industries.edit')
+    ->breadcrumbs(fn(Trail $trail, $industry) => $trail
+        ->parent('platform.industries')
+        ->push(optional($industry)->name ?: __('Edit'), route('platform.industries.edit', $industry)));
 // Platform > Recruitment > Candidates
 Route::screen('candidates', CandidateListScreen::class)
     ->name('platform.candidates')
