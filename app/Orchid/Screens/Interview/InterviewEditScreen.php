@@ -41,7 +41,7 @@ class InterviewEditScreen extends Screen
      */
     public function permission(): ?iterable
     {
-        return ['platform.interviews'];
+        return ['platform.interviews','platform.my_interviews'];
     }
 
     /**
@@ -49,6 +49,12 @@ class InterviewEditScreen extends Screen
      */
     public function query(Interview $interview): iterable
     {
+        if (!auth()->user()->hasAccess('platform.interviews')) {
+            if (!$interview->interviewer || $interview->interviewer->id !== auth()->id()) {
+                abort(403);
+            }
+        }
+
         // Load relations including job roles for access control
         $interview->load(['application.candidate', 'application.jobListing.roles', 'interviewer']);
         // Access control: only allow if job unrestricted or user has matching role

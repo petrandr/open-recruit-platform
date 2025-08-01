@@ -8,8 +8,6 @@ use Orchid\Platform\Dashboard;
 use Orchid\Platform\ItemPermission;
 use Orchid\Platform\OrchidServiceProvider;
 use Orchid\Screen\Actions\Menu;
-use Orchid\Support\Color;
-use Illuminate\Routing\Router;
 
 class PlatformProvider extends OrchidServiceProvider
 {
@@ -60,14 +58,8 @@ class PlatformProvider extends OrchidServiceProvider
             Menu::make(__('Interviews'))
                 ->icon('bs.calendar-event')
                 ->route('platform.interviews')
-                ->permission('platform.interviews')
+                ->permission(['platform.interviews','platform.my_interviews'])
                 ->set('group', 'Recruitment'),
-            Menu::make(__('My Interviews'))
-                ->icon('bs.calendar-check')
-                ->route('platform.interviews.my')
-                ->permission('platform.my_interviews')
-                ->set('group', 'Recruitment'),
-
             Menu::make(__('My Calendars'))
                 ->icon('bs.calendar')
                 ->route('platform.calendars')
@@ -185,7 +177,7 @@ class PlatformProvider extends OrchidServiceProvider
                 ->addPermission('platform.jobs.delete', __('Delete Jobs'))
                 ->addPermission('platform.candidates', __('Candidates'))
                 ->addPermission('platform.applications', __('Applications'))
-                ->addPermission('platform.interviews', __('Interviews'))
+                ->addPermission('platform.interviews', __('Interviews (Wide Access)'))
                 ->addPermission('platform.my_interviews', __('My Interviews'))
                 ->addPermission('platform.industries', __('Industries')),
         ];

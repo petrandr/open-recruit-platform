@@ -35,7 +35,15 @@ class InterviewListScreen extends Screen
      */
     public function permission(): ?iterable
     {
-        return ['platform.interviews'];
+        return ['platform.interviews','platform.my_interviews'];
+    }
+
+    /**
+     * Indicates is the auth user has wide interview access
+     */
+    public function hasWideAccess(): bool
+    {
+        return auth()->user()->hasAccess('platform.interviews');
     }
 
     /**
@@ -45,7 +53,13 @@ class InterviewListScreen extends Screen
     {
         $query = Interview::with(['application.candidate', 'interviewer', 'application.jobListing'])
             ->filters(InterviewFiltersLayout::class)
-            ->orderByDesc('scheduled_at');
+            ->defaultSort('id', 'desc');
+
+        // If user have no wide access, restrict wide view
+        if (!$this->hasWideAccess()) {
+            $query->where('interviewer_id', auth()->id());
+        }
+
         // Restrict to interviews for accessible jobs
         $roleIds = auth()->user()->roles()->pluck('id')->toArray();
         $query->where(function ($q) use ($roleIds) {

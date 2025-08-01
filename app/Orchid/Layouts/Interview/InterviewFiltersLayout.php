@@ -16,11 +16,19 @@ class InterviewFiltersLayout extends Selection
 
     public function filters(): array
     {
-        return [
+        $filters = [
             CandidateFilter::class,
-            JobFilter::class,
-            InterviewerFilter::class,
-            StatusFilter::class,
+            JobFilter::class
         ];
+
+        if (auth()->user()->hasAccess('platform.interviews')) {
+            $filters[] = InterviewerFilter::class;
+        }
+
+        $filters = array_merge($filters, [
+            StatusFilter::class,
+        ]);
+
+        return $filters;
     }
 }

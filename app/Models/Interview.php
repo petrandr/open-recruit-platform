@@ -39,6 +39,20 @@ class Interview extends Model
     ];
 
     /**
+     * Attributes available for sorting in Orchid screens.
+     *
+     * @var array
+     */
+    protected $allowedSorts = [
+        'id',
+        'interviewer_id',
+        'scheduled_at',
+        'status',
+        'round',
+        'mode',
+    ];
+
+    /**
      * Interview belongs to a JobApplication.
      */
     public function application()

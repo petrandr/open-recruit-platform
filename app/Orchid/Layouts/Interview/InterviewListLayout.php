@@ -22,7 +22,7 @@ class InterviewListLayout extends Table
     public function columns(): array
     {
         return [
-            TD::make('id', __('ID'))->render(function(Interview $interview) {
+            TD::make('id', __('ID'))->sort()->render(function(Interview $interview) {
                 return Link::make((string) $interview->id)
                     ->route('platform.interviews.view', $interview);
             }),
@@ -33,18 +33,18 @@ class InterviewListLayout extends Table
                     ->route('platform.applications.view', $app->id);
             }),
             TD::make('position', __('Position'))->render(fn(Interview $i) => $i->application->jobListing?->title ?? '-'),
-            TD::make('interviewer', __('Interviewer'))->render(fn(Interview $i) => $i->interviewer?->name ?? '-'),
+            TD::make('interviewer_id', __('Interviewer'))->sort()->render(fn(Interview $i) => $i->interviewer?->name ?? '-'),
             TD::make('scheduled_at', __('Scheduled At'))->sort(),
-            TD::make('status', __('Status'))
+            TD::make('status', __('Status'))->sort()
                 ->render(function (Interview $interview) {
                     $item = \App\Support\Interview::statuses()[$interview->status];
                     return "<span class=\"badge bg-{$item['color']} status-badge\">{$item['label']}</span>";
                 }),
-            TD::make('round', __('Round'))
+            TD::make('round', __('Round'))->sort()
                 ->render(function (Interview $interview) {
                     return  \App\Support\Interview::rounds()[$interview->round]['label'];
                 }),
-            TD::make('mode', __('Mode'))
+            TD::make('mode', __('Mode'))->sort()
                 ->render(function (Interview $interview) {
                     return  \App\Support\Interview::modes()[$interview->mode]['label'];
                 }),

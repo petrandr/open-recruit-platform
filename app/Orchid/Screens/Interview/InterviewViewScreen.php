@@ -26,6 +26,11 @@ class InterviewViewScreen extends Screen
      */
     public function query(Interview $interview): iterable
     {
+        if (!auth()->user()->hasAccess('platform.interviews')) {
+            if (!$interview->interviewer || $interview->interviewer->id !== auth()->id()) {
+                abort(403);
+            }
+        }
         $interview->load(['application.candidate', 'application.jobListing', 'interviewer']);
         // Access control: only allow if job unrestricted or user has matching role
         $userRoleIds = auth()->user()->roles()->pluck('id')->toArray();
@@ -33,7 +38,7 @@ class InterviewViewScreen extends Screen
         if (empty(array_intersect($jobRoleIds, $userRoleIds))) {
             abort(403);
         }
-        
+
         return [
             'interview' => $interview,
         ];
@@ -60,7 +65,7 @@ class InterviewViewScreen extends Screen
      */
     public function permission(): ?iterable
     {
-        return ['platform.interviews'];
+        return ['platform.interviews','platform.my_interviews'];
     }
 
     /**
