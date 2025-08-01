@@ -6,6 +6,11 @@
         loaded = true;
         var placeholder = '{{appointment_calendar}}';
         var bodyEl = document.getElementById('schedule-body');
+
+        if (!bodyEl) {
+            return;
+        }
+
         var picker = document.getElementById('calendar-picker');
         var userSelect = document.getElementById('schedule-user-select');
         var calSelect = document.getElementById('schedule-calendar-select');
