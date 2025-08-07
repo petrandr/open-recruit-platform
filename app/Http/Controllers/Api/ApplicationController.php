@@ -17,6 +17,9 @@ use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Log;
 use App\Notifications\NewApplicationNotification;
 use App\Models\User;
+use App\Models\NotificationTemplate;
+use App\Services\ApplicationService;
+use App\Notifications\ApplicationReceivedNotification;
 
 class ApplicationController extends Controller
 {
@@ -118,6 +121,24 @@ class ApplicationController extends Controller
                 Log::error('New application notification failed', [
                     'application_id' => $application->id,
                     'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        // Send application received email to candidate
+        if (! empty($job->application_received_template_id)) {
+            try {
+                $template = NotificationTemplate::find($job->application_received_template_id);
+                $service  = app(ApplicationService::class);
+                $subject  = $service->parseTemplate($template->subject, $application);
+                $body     = $service->parseTemplate($template->body, $application);
+                $application->candidate->notify(
+                    new ApplicationReceivedNotification($application, $subject, $body)
+                );
+            } catch (\Throwable $e) {
+                Log::error('Application received email failed. Candidate was not notified.', [
+                    'application_id' => $application->id,
+                    'error'          => $e->getMessage(),
                 ]);
             }
         }

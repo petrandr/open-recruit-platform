@@ -72,6 +72,7 @@ class ApplicationInterviewInvitationNotification extends Notification
             'template_body'    => $this->templateBody,
         ];
     }
+
     /**
      * Retrieve the associated JobApplication.
      *

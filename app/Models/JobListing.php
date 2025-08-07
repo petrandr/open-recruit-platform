@@ -40,6 +40,7 @@ class JobListing extends Model
         'location',
         'who_to_notify',
         'industry_id',
+        'application_received_template_id',
     ];
 
     /**

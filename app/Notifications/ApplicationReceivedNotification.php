@@ -1,4 +1,5 @@
-<?php
+<?php declare(strict_types=1);
+
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
@@ -7,30 +8,40 @@ use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\MailMessage;
 use App\Models\JobApplication;
 
-class NewApplicationNotification extends Notification implements ShouldQueue
+class ApplicationReceivedNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
     /** @var JobApplication */
     protected $application;
 
+    /** @var string */
+    protected $templateSubject;
+
+    /** @var string */
+    protected $templateBody;
+
     /**
      * Create a new notification instance.
      *
      * @param JobApplication $application
+     * @param string $templateSubject
+     * @param string $templateBody
      */
-    public function __construct(JobApplication $application)
+    public function __construct(JobApplication $application, string $templateSubject, string $templateBody)
     {
         $this->application = $application;
+        $this->templateSubject = $templateSubject;
+        $this->templateBody = $templateBody;
     }
 
     /**
      * Get the notification's delivery channels.
      *
      * @param mixed $notifiable
-     * @return array
+     * @return array<int, string>
      */
-    public function via($notifiable)
+    public function via($notifiable): array
     {
         return ['mail'];
     }
@@ -41,39 +52,31 @@ class NewApplicationNotification extends Notification implements ShouldQueue
      * @param mixed $notifiable
      * @return MailMessage
      */
-    public function toMail($notifiable)
+    public function toMail($notifiable): MailMessage
     {
-        $job = $this->application->jobListing;
-        $fullName = $this->application->candidate->first_name . ' ' . $this->application->candidate->last_name;
-
         return (new MailMessage)
-            ->subject('New Application for ' . $job->title . ': ' . $fullName)
-            ->greeting('Hello,')
-            ->line('A new application has been submitted for the job: ' . $job->title)
-            ->line('Applicant: ' . $fullName)
-            ->action('View Application', route('platform.applications.view', $this->application->id))
-            ->line('Thank you for using our ATS system.');
+            ->subject($this->templateSubject)
+            ->view('emails.generic_html', [
+                'body'    => $this->templateBody,
+                'subject' => $this->templateSubject,
+            ]);
     }
 
     /**
      * Get the array representation of the notification.
      *
+     * @param mixed $notifiable
      * @return array<string, mixed>
      */
-    public function toArray(object $notifiable): array
+    public function toArray($notifiable): array
     {
-        $mailMessage = $this->toMail($notifiable);
-
-        $fullMessage = implode("\n", array_merge(
-            $mailMessage->introLines,
-            [$mailMessage->actionText . ' (' . $mailMessage->actionUrl . ')'],
-            $mailMessage->outroLines
-        ));
-
         return [
-            'template_body' => $fullMessage,
+            'application_id'   => $this->application->id,
+            'template_subject' => $this->templateSubject,
+            'template_body'    => $this->templateBody,
         ];
     }
+
     /**
      * Retrieve the associated JobApplication.
      *

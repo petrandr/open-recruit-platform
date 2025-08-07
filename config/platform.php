@@ -380,6 +380,7 @@ return [
         'types' => [
             'rejection'             => 'Rejection',
             'interview_invitation'  => 'Interview Invitation',
+            'application_received' => 'Application Received',
         ],
         /*
         |--------------------------------------------------------------------------

@@ -11,6 +11,7 @@ use Orchid\Screen\Fields\DateTimer;
 use Orchid\Screen\Fields\Relation;
 use App\Models\Industry;
 use App\Models\User;
+use App\Models\NotificationTemplate;
 use Orchid\Platform\Models\Role;
 
 class JobListingGeneralLayout extends Rows
@@ -93,6 +94,12 @@ class JobListingGeneralLayout extends Rows
                         ->toArray()
                 )
                 ->help(__('Select roles permitted to access this job applications')),
+
+            Select::make('job.application_received_template_id')
+                ->title(__('Application Received Email Template'))
+                ->options(NotificationTemplate::where('type', 'application_received')->pluck('name', 'id')->toArray())
+                ->empty(__('None'))
+                ->help(__('Optional: select an email template to send to candidates when they apply')),
 
         ];
     }

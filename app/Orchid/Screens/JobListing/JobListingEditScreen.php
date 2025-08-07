@@ -211,6 +211,7 @@ class JobListingEditScreen extends Screen
             // Roles allowed to access this job
             'job.roles'             => 'nullable|array',
             'job.roles.*'           => 'integer|exists:roles,id',
+            'job.application_received_template_id' => 'nullable|integer|exists:notification_templates,id',
         ]);
 
         // Prepare job data and always generate slug from title
