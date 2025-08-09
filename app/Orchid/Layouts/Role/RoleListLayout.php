@@ -36,6 +36,9 @@ class RoleListLayout extends Table
                 ->cantHide()
                 ->filter(Input::make()),
 
+            TD::make('role_type', __('Type'))
+                ->render(fn (Role $role) => ucfirst($role->role_type)),
+
             TD::make('created_at', __('Created'))
                 ->usingComponent(DateTimeSplit::class)
                 ->align(TD::ALIGN_RIGHT)

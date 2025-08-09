@@ -113,4 +113,48 @@ class User extends Authenticatable
             'job_application_id'
         )->withTimestamps();
     }
+
+    /**
+     * Mapping of role types to hierarchy ranks.
+     *
+     * @var array<string,int>
+     */
+    protected static array $roleTypeRank = [
+        'regular'    => 0,
+        'admin'      => 1,
+        'superadmin' => 2,
+    ];
+
+    /**
+     * Get the highest role type rank for this user.
+     */
+    public function getHighestRoleTypeRank(): int
+    {
+        $ranks = $this->roles->pluck('role_type')->map(
+            fn ($type) => static::$roleTypeRank[$type] ?? 0
+        );
+
+        return $ranks->max() ?? 0;
+    }
+
+    /**
+     * Determine if this user can modify the given target user
+     * based on role type hierarchy.
+     */
+    public function canModifyUser(self $target): bool
+    {
+        return $this->getHighestRoleTypeRank() >= $target->getHighestRoleTypeRank();
+    }
+    
+    /**
+     * Determine if this user can modify the given role
+     * based on role type hierarchy.
+     */
+    public function canModifyRole(\Orchid\Platform\Models\Role $role): bool
+    {
+        $mapping = static::$roleTypeRank;
+        $targetRank = $mapping[$role->role_type] ?? 0;
+
+        return $this->getHighestRoleTypeRank() >= $targetRank;
+    }
 }

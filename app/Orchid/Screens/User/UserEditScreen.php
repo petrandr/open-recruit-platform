@@ -20,6 +20,8 @@ use Orchid\Screen\Screen;
 use Orchid\Support\Color;
 use Orchid\Support\Facades\Layout;
 use Orchid\Support\Facades\Toast;
+use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Support\Str;
 
 class UserEditScreen extends Screen
 {
@@ -31,10 +33,16 @@ class UserEditScreen extends Screen
     /**
      * Fetch data to be displayed on the screen.
      *
-     * @return array
      */
-    public function query(User $user): iterable
+    public function query(User $user)
     {
+        // Restrict access based on role hierarchy
+        if ($user->exists && ! auth()->user()->canModifyUser($user)) {
+            Toast::warning(__('You do not have permission to edit that user.'));
+            throw new HttpResponseException(
+                redirect()->route('platform.systems.users')
+            );
+        }
         $user->load(['roles']);
 
         return [
@@ -78,13 +86,20 @@ class UserEditScreen extends Screen
                 ->icon('bg.box-arrow-in-right')
                 ->confirm(__('You can revert to your original state by logging out.'))
                 ->method('loginAs')
-                ->canSee($this->user->exists && $this->user->id !== \request()->user()->id),
+                ->canSee(
+                    $this->user->exists
+                    && $this->user->id !== request()->user()->id
+                    && auth()->user()->canModifyUser($this->user)
+                ),
 
             Button::make(__('Remove'))
                 ->icon('bs.trash3')
                 ->confirm(__('Once the account is deleted, all of its resources and data will be permanently deleted. Before deleting your account, please download any data or information that you wish to retain.'))
                 ->method('remove')
-                ->canSee($this->user->exists),
+                ->canSee(
+                    $this->user->exists
+                    && auth()->user()->canModifyUser($this->user)
+                ),
 
             Button::make(__('Save'))
                 ->icon('bs.check-circle')
@@ -140,6 +155,13 @@ class UserEditScreen extends Screen
      */
     public function save(User $user, Request $request)
     {
+        // Restrict saving based on role hierarchy
+        if ($user->exists && ! auth()->user()->canModifyUser($user)) {
+            Toast::warning(__('You do not have permission to edit that user.'));
+            throw new HttpResponseException(
+                redirect()->route('platform.systems.users')
+            );
+        }
         $request->validate([
             'user.email' => [
                 'required',
@@ -152,16 +174,22 @@ class UserEditScreen extends Screen
             ->collapse()
             ->toArray();
 
-        $user->when($request->filled('user.password'), function (Builder $builder) use ($request) {
-            $builder->getModel()->password = Hash::make($request->input('user.password'));
-        });
+        // Handle password assignment: if SAML SSO is enabled, auto-generate on create; otherwise use provided password
+        $samlEnabled = config('platform.saml_auth', false);
+        if ($samlEnabled && ! $user->exists) {
+            // Generate a random password for SAML users
+            $user->password = Hash::make(Str::random(40));
+        } elseif ($request->filled('user.password')) {
+            $user->password = Hash::make($request->input('user.password'));
+        }
 
         $user
             ->fill($request->collect('user')->except(['password', 'permissions', 'roles'])->toArray())
             ->forceFill(['permissions' => $permissions])
             ->save();
 
-        $user->replaceRoles($request->input('user.roles'));
+        // Sync roles from the flat user_roles[] input field
+        $user->replaceRoles($request->input('user_roles', []));
 
         Toast::info(__('User was saved.'));
 
@@ -175,6 +203,11 @@ class UserEditScreen extends Screen
      */
     public function remove(User $user)
     {
+        // Restrict deletion based on role hierarchy
+        if (! auth()->user()->canModifyUser($user)) {
+            Toast::warning(__('You do not have permission to delete that user.'));
+            return redirect()->route('platform.systems.users');
+        }
         $user->delete();
 
         Toast::info(__('User was removed'));
@@ -187,6 +220,11 @@ class UserEditScreen extends Screen
      */
     public function loginAs(User $user)
     {
+        // Restrict impersonation based on role hierarchy
+        if (! auth()->user()->canModifyUser($user)) {
+            Toast::warning(__('You do not have permission to impersonate that user.'));
+            return redirect()->route('platform.systems.users');
+        }
         Impersonation::loginAs($user);
 
         Toast::info(__('You are now impersonating this user'));

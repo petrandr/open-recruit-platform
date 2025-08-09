@@ -6,6 +6,7 @@ namespace App\Orchid\Layouts\Role;
 
 use Orchid\Screen\Field;
 use Orchid\Screen\Fields\Input;
+use Orchid\Screen\Fields\Select;
 use Orchid\Screen\Layouts\Rows;
 
 class RoleEditLayout extends Rows
@@ -33,6 +34,16 @@ class RoleEditLayout extends Rows
                 ->title(__('Slug'))
                 ->placeholder(__('Slug'))
                 ->help(__('Actual name in the system')),
+
+            Select::make('role.role_type')
+                ->title(__('Role Type'))
+                ->options([
+                    'regular'    => __('Regular'),
+                    'admin'      => __('Admin'),
+                    'superadmin' => __('Superadmin'),
+                ])
+                ->required()
+                ->help(__('Select the type of role')),
         ];
     }
 }

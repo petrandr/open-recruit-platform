@@ -14,6 +14,7 @@ use Orchid\Screen\Actions\Button;
 use Orchid\Screen\Screen;
 use Orchid\Support\Facades\Layout;
 use Orchid\Support\Facades\Toast;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
 class RoleEditScreen extends Screen
 {
@@ -29,6 +30,14 @@ class RoleEditScreen extends Screen
      */
     public function query(Role $role): iterable
     {
+        // Restrict access based on role hierarchy
+        if ($role->exists && ! auth()->user()->canModifyRole($role)) {
+            Toast::warning(__('You do not have permission to edit that role.'));
+            throw new \Illuminate\Http\Exceptions\HttpResponseException(
+                redirect()->route('platform.systems.roles')
+            );
+        }
+        
         return [
             'role'       => $role,
             'permission' => $role->getStatusPermission(),
@@ -108,14 +117,19 @@ class RoleEditScreen extends Screen
     public function save(Request $request, Role $role)
     {
         $request->validate([
-            'role.name' => 'required',
-            'role.slug' => [
+            'role.name'      => 'required',
+            'role.slug'      => [
                 'required',
                 Rule::unique(Role::class, 'slug')->ignore($role),
+            ],
+            'role.role_type' => [
+                'required',
+                Rule::in(['regular', 'admin', 'superadmin']),
             ],
         ]);
 
         $role->fill($request->get('role'));
+        $role->role_type = $request->input('role.role_type');
 
         $role->permissions = collect($request->get('permissions'))
             ->map(fn ($value, $key) => [base64_decode($key) => $value])
@@ -140,6 +154,17 @@ class RoleEditScreen extends Screen
 
         Toast::info(__('Role was removed'));
 
+        return redirect()->route('platform.systems.roles');
+    }
+    
+    /**
+     * Override default access denied behavior to redirect with a warning toast.
+     *
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public static function unaccessed()
+    {
+        Toast::warning(__('You do not have permission to access roles.'));
         return redirect()->route('platform.systems.roles');
     }
 }

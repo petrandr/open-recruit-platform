@@ -38,13 +38,18 @@ class UserListLayout extends Table
                 ->sort()
                 ->cantHide()
                 ->filter(Input::make())
-                ->render(fn (User $user) => ModalToggle::make($user->email)
-                    ->modal('editUserModal')
-                    ->modalTitle($user->presenter()->title())
-                    ->method('saveUser')
-                    ->asyncParameters([
-                        'user' => $user->id,
-                    ])),
+                ->render(function (User $user) {
+                    if (auth()->user()->canModifyUser($user)) {
+                        return ModalToggle::make($user->email)
+                            ->modal('editUserModal')
+                            ->modalTitle($user->presenter()->title())
+                            ->method('saveUser')
+                            ->asyncParameters([
+                                'user' => $user->id,
+                            ]);
+                    }
+                    return $user->email;
+                }),
 
             TD::make('created_at', __('Created'))
                 ->usingComponent(DateTimeSplit::class)
@@ -65,21 +70,25 @@ class UserListLayout extends Table
             TD::make(__('Actions'))
                 ->align(TD::ALIGN_CENTER)
                 ->width('100px')
-                ->render(fn (User $user) => DropDown::make()
-                    ->icon('bs.three-dots-vertical')
-                    ->list([
-
-                        Link::make(__('Edit'))
+                ->render(function (User $user) {
+                    $actions = [];
+                    if (auth()->user()->canModifyUser($user)) {
+                        $actions[] = Link::make(__('Edit'))
                             ->route('platform.systems.users.edit', $user->id)
-                            ->icon('bs.pencil'),
+                            ->icon('bs.pencil');
 
-                        Button::make(__('Delete'))
+                        $actions[] = Button::make(__('Delete'))
                             ->icon('bs.trash3')
                             ->confirm(__('Once the account is deleted, all of its resources and data will be permanently deleted. Before deleting your account, please download any data or information that you wish to retain.'))
                             ->method('remove', [
                                 'id' => $user->id,
-                            ]),
-                    ])),
+                            ]);
+                    }
+
+                    return DropDown::make()
+                        ->icon('bs.three-dots-vertical')
+                        ->list($actions);
+                }),
         ];
     }
 }

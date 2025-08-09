@@ -99,6 +99,11 @@ class UserListScreen extends Screen
 
     public function saveUser(Request $request, User $user): void
     {
+        // Permission check: only allow modifying users within hierarchy
+        if (! auth()->user()->canModifyUser($user)) {
+            Toast::warning(__('You are not allowed to perform this action.'));
+            return;
+        }
         $request->validate([
             'user.email' => [
                 'required',
@@ -113,7 +118,13 @@ class UserListScreen extends Screen
 
     public function remove(Request $request): void
     {
-        User::findOrFail($request->get('id'))->delete();
+        $user = User::findOrFail($request->get('id'));
+        // Permission check: only allow modifying users within hierarchy
+        if (! auth()->user()->canModifyUser($user)) {
+            Toast::warning(__('You are not allowed to perform this action.'));
+            return;
+        }
+        $user->delete();
 
         Toast::info(__('User was removed'));
     }

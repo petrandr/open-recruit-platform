@@ -27,11 +27,24 @@ class UserPasswordLayout extends Rows
             ? __('Leave empty to keep current password')
             : __('Enter the password to be set');
 
+        // Determine if SAML SSO is enabled in the platform config
+        $samlEnabled = config('platform.saml_auth', false);
+        
+        // Build the password field
+        $passwordField = Password::make('user.password')
+            ->placeholder($placeholder)
+            ->title(__('Password'))
+            ->required(! $exists && ! $samlEnabled);
+        
+        // If SAML is enabled, disable local password input and display help
+        if ($samlEnabled) {
+            $passwordField = $passwordField
+                ->disabled()
+                ->help(__('Password management is disabled because SAML SSO is enabled.'));
+        }
+
         return [
-            Password::make('user.password')
-                ->placeholder($placeholder)
-                ->title(__('Password'))
-                ->required(! $exists),
+            $passwordField,
         ];
     }
 }
