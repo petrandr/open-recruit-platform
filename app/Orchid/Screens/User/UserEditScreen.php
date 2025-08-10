@@ -36,19 +36,33 @@ class UserEditScreen extends Screen
      */
     public function query(User $user)
     {
+        $user->load(['roles']);
+
+        return [
+            'user' => $user,
+            'permission' => $user->getStatusPermission(),
+        ];
+    }
+
+    public function checkAccess(Request $request): bool
+    {
+        if (!parent::checkAccess($request)) {
+            return false;
+        }
+
+        $userParam = $request->route('user');
+        $user = $userParam instanceof User ? $userParam : User::find($userParam);
+
         // Restrict access based on role hierarchy
-        if ($user->exists && ! auth()->user()->canModifyUser($user)) {
+        if ($user && $user->exists && !auth()->user()->canModifyUser($user)) {
             Toast::warning(__('You do not have permission to edit that user.'));
             throw new HttpResponseException(
                 redirect()->route('platform.systems.users')
             );
         }
-        $user->load(['roles']);
 
-        return [
-            'user'       => $user,
-            'permission' => $user->getStatusPermission(),
-        ];
+
+        return true;
     }
 
     /**
@@ -156,7 +170,7 @@ class UserEditScreen extends Screen
     public function save(User $user, Request $request)
     {
         // Restrict saving based on role hierarchy
-        if ($user->exists && ! auth()->user()->canModifyUser($user)) {
+        if ($user->exists && !auth()->user()->canModifyUser($user)) {
             Toast::warning(__('You do not have permission to edit that user.'));
             throw new HttpResponseException(
                 redirect()->route('platform.systems.users')
@@ -170,13 +184,13 @@ class UserEditScreen extends Screen
         ]);
 
         $permissions = collect($request->get('permissions'))
-            ->map(fn ($value, $key) => [base64_decode($key) => $value])
+            ->map(fn($value, $key) => [base64_decode($key) => $value])
             ->collapse()
             ->toArray();
 
         // Handle password assignment: if SAML SSO is enabled, auto-generate on create; otherwise use provided password
         $samlEnabled = config('platform.saml_auth', false);
-        if ($samlEnabled && ! $user->exists) {
+        if ($samlEnabled && !$user->exists) {
             // Generate a random password for SAML users
             $user->password = Hash::make(Str::random(40));
         } elseif ($request->filled('user.password')) {
@@ -197,14 +211,14 @@ class UserEditScreen extends Screen
     }
 
     /**
+     * @return \Illuminate\Http\RedirectResponse
      * @throws \Exception
      *
-     * @return \Illuminate\Http\RedirectResponse
      */
     public function remove(User $user)
     {
         // Restrict deletion based on role hierarchy
-        if (! auth()->user()->canModifyUser($user)) {
+        if (!auth()->user()->canModifyUser($user)) {
             Toast::warning(__('You do not have permission to delete that user.'));
             return redirect()->route('platform.systems.users');
         }
@@ -221,7 +235,7 @@ class UserEditScreen extends Screen
     public function loginAs(User $user)
     {
         // Restrict impersonation based on role hierarchy
-        if (! auth()->user()->canModifyUser($user)) {
+        if (!auth()->user()->canModifyUser($user)) {
             Toast::warning(__('You do not have permission to impersonate that user.'));
             return redirect()->route('platform.systems.users');
         }

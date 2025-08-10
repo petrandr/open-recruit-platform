@@ -30,18 +30,30 @@ class RoleEditScreen extends Screen
      */
     public function query(Role $role): iterable
     {
-        // Restrict access based on role hierarchy
-        if ($role->exists && ! auth()->user()->canModifyRole($role)) {
+        return [
+            'role' => $role,
+            'permission' => $role->getStatusPermission(),
+        ];
+    }
+
+    public function checkAccess(Request $request): bool
+    {
+        if (!parent::checkAccess($request)) {
+            return false;
+        }
+
+        $roleParam = $request->route('role');
+        $role = $roleParam instanceof Role ? $roleParam : Role::find($roleParam);
+
+        // Restrict editing based on role hierarchy
+        if ($role && $role->exists && !auth()->user()->canModifyRole($role)) {
             Toast::warning(__('You do not have permission to edit that role.'));
-            throw new \Illuminate\Http\Exceptions\HttpResponseException(
+            throw new HttpResponseException(
                 redirect()->route('platform.systems.roles')
             );
         }
-        
-        return [
-            'role'       => $role,
-            'permission' => $role->getStatusPermission(),
-        ];
+
+        return true;
     }
 
     /**
@@ -69,6 +81,7 @@ class RoleEditScreen extends Screen
             'platform.systems.roles',
         ];
     }
+
 
     /**
      * The screen's action buttons.
@@ -117,8 +130,8 @@ class RoleEditScreen extends Screen
     public function save(Request $request, Role $role)
     {
         $request->validate([
-            'role.name'      => 'required',
-            'role.slug'      => [
+            'role.name' => 'required',
+            'role.slug' => [
                 'required',
                 Rule::unique(Role::class, 'slug')->ignore($role),
             ],
@@ -132,7 +145,7 @@ class RoleEditScreen extends Screen
         $role->role_type = $request->input('role.role_type');
 
         $role->permissions = collect($request->get('permissions'))
-            ->map(fn ($value, $key) => [base64_decode($key) => $value])
+            ->map(fn($value, $key) => [base64_decode($key) => $value])
             ->collapse()
             ->toArray();
 
@@ -144,9 +157,9 @@ class RoleEditScreen extends Screen
     }
 
     /**
+     * @return \Illuminate\Http\RedirectResponse
      * @throws \Exception
      *
-     * @return \Illuminate\Http\RedirectResponse
      */
     public function remove(Role $role)
     {
@@ -156,15 +169,5 @@ class RoleEditScreen extends Screen
 
         return redirect()->route('platform.systems.roles');
     }
-    
-    /**
-     * Override default access denied behavior to redirect with a warning toast.
-     *
-     * @return \Symfony\Component\HttpFoundation\Response
-     */
-    public static function unaccessed()
-    {
-        Toast::warning(__('You do not have permission to access roles.'));
-        return redirect()->route('platform.systems.roles');
-    }
+
 }

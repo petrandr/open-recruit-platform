@@ -5,6 +5,7 @@ namespace App\Orchid\Screens\Interview;
 
 use App\Models\Interview;
 use App\Models\User;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Validation\Rule;
 use Orchid\Screen\Screen;
 use Illuminate\Http\Request;
@@ -41,7 +42,46 @@ class InterviewEditScreen extends Screen
      */
     public function permission(): ?iterable
     {
-        return ['platform.interviews','platform.my_interviews'];
+        return ['platform.interviews', 'platform.my_interviews'];
+    }
+
+    public function checkAccess(Request $request): bool
+    {
+        if (!parent::checkAccess($request)) {
+            return false;
+        }
+
+        $interviewParam = $request->route('interview');
+        $interview = $interviewParam instanceof Interview ? $interviewParam : Interview::find($interviewParam);
+
+        if (!$interview) {
+            Toast::warning(__('You do not have permission to access this interview.'));
+            throw new HttpResponseException(
+                redirect()->route('platform.interviews')
+            );
+        }
+
+        if (!auth()->user()->hasAccess('platform.interviews')) {
+            if (!$interview->interviewer || $interview->interviewer->id !== auth()->id()) {
+                Toast::warning(__('You do not have permission to access this interview.'));
+                throw new HttpResponseException(
+                    redirect()->route('platform.interviews')
+                );
+            }
+        } else {
+            // Access control: only allow if job unrestricted or user has matching role
+            $userRoleIds = auth()->user()->roles()->pluck('id')->toArray();
+            $jobRoleIds = $interview->application->jobListing->roles->pluck('id')->toArray();
+            if (empty(array_intersect($jobRoleIds, $userRoleIds))) {
+                Toast::warning(__('You do not have permission to access this interview.'));
+                throw new HttpResponseException(
+                    redirect()->route('platform.interviews')
+                );
+            }
+        }
+
+
+        return true;
     }
 
     /**
@@ -49,20 +89,9 @@ class InterviewEditScreen extends Screen
      */
     public function query(Interview $interview): iterable
     {
-        if (!auth()->user()->hasAccess('platform.interviews')) {
-            if (!$interview->interviewer || $interview->interviewer->id !== auth()->id()) {
-                abort(403);
-            }
-        }
-
         // Load relations including job roles for access control
         $interview->load(['application.candidate', 'application.jobListing.roles', 'interviewer']);
-        // Access control: only allow if job unrestricted or user has matching role
-        $userRoleIds = auth()->user()->roles()->pluck('id')->toArray();
-        $jobRoleIds  = $interview->application->jobListing->roles->pluck('id')->toArray();
-        if (empty(array_intersect($jobRoleIds, $userRoleIds))) {
-            abort(403);
-        }
+
         // Precompute application label for display
         $app = $interview->application;
         $candidate = $app->candidate;
@@ -99,13 +128,13 @@ class InterviewEditScreen extends Screen
             Layout::block(
                 InterviewFormLayout::class
             )
-            ->title($this->interview->exists ? __('Edit Interview') : __('Add Interview'))
-            ->description(__('Modify the interview details below.'))
-            ->commands([
-                Button::make(__('Save'))
-                    ->icon('bs.check2')
-                    ->method('save'),
-            ]),
+                ->title($this->interview->exists ? __('Edit Interview') : __('Add Interview'))
+                ->description(__('Modify the interview details below.'))
+                ->commands([
+                    Button::make(__('Save'))
+                        ->icon('bs.check2')
+                        ->method('save'),
+                ]),
         ];
     }
 
@@ -115,14 +144,14 @@ class InterviewEditScreen extends Screen
     public function save(Request $request, Interview $interview)
     {
         $request->validate([
-            'interview.interviewer_id'   => 'required|exists:users,id',
-            'interview.scheduled_at'      => 'nullable|date',
-            'interview.status'            => ['required', Rule::in(array_keys(\App\Support\Interview::statuses()))],
-            'interview.round'             => ['required', Rule::in(array_keys(\App\Support\Interview::rounds()))],
-            'interview.mode'              => ['required', Rule::in(array_keys(\App\Support\Interview::modes()))],
-            'interview.location'          => 'nullable|string|max:255',
-            'interview.duration_minutes'  => 'nullable|integer',
-            'interview.comments'          => 'nullable|string',
+            'interview.interviewer_id' => 'required|exists:users,id',
+            'interview.scheduled_at' => 'nullable|date',
+            'interview.status' => ['required', Rule::in(array_keys(\App\Support\Interview::statuses()))],
+            'interview.round' => ['required', Rule::in(array_keys(\App\Support\Interview::rounds()))],
+            'interview.mode' => ['required', Rule::in(array_keys(\App\Support\Interview::modes()))],
+            'interview.location' => 'nullable|string|max:255',
+            'interview.duration_minutes' => 'nullable|integer',
+            'interview.comments' => 'nullable|string',
         ]);
         $interview->fill($request->input('interview'));
         $interview->save();
