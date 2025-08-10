@@ -51,17 +51,20 @@ class ApplicationListScreen extends Screen
         $query = JobApplication::with('jobListing', 'candidate')
             ->filters(ApplicationFiltersLayout::class)
             ->defaultSort('id', 'desc');
-        // Restrict to applications for accessible jobs OR shared with the user
-        $userId = auth()->id();
-        $roleIds = auth()->user()->roles()->pluck('id')->toArray();
-        $query->where(function ($q) use ($roleIds, $userId) {
-            $q->whereHas('jobListing.roles', function ($q2) use ($roleIds) {
-                $q2->whereIn('roles.id', $roleIds);
-            })
-            ->orWhereHas('sharedWith', function ($q3) use ($userId) {
-                $q3->where('user_id', $userId);
+
+        if (!auth()->user()->hasAdminPrivileges()) {
+            // Restrict to applications for accessible jobs OR shared with the user
+            $userId = auth()->id();
+            $roleIds = auth()->user()->roles()->pluck('id')->toArray();
+            $query->where(function ($q) use ($roleIds, $userId) {
+                $q->whereHas('jobListing.roles', function ($q2) use ($roleIds) {
+                    $q2->whereIn('roles.id', $roleIds);
+                })
+                    ->orWhereHas('sharedWith', function ($q3) use ($userId) {
+                        $q3->where('user_id', $userId);
+                    });
             });
-        });
+        }
 
         if ($name = $request->get('candidate')) {
             $query->whereHas('candidate', function ($q) use ($name) {
@@ -79,14 +82,12 @@ class ApplicationListScreen extends Screen
         // Apply column filter for fit category if provided
         if ($fitCategory = $request->input('filter.fit_ratio')) {
             match ($fitCategory) {
-                'good'  => $query->where('fit_ratio', '>=', 0.8),
+                'good' => $query->where('fit_ratio', '>=', 0.8),
                 'maybe' => $query->where('fit_ratio', '>=', 0.5)->where('fit_ratio', '<', 0.8),
-                'not'   => $query->where('fit_ratio', '<', 0.5),
+                'not' => $query->where('fit_ratio', '<', 0.5),
                 default => null,
             };
         }
-
-//        dd($query->toSql());
 
         $applications = $query->paginate();
 
@@ -267,7 +268,7 @@ class ApplicationListScreen extends Screen
         $sendAt = $request->filled('send_at') ? Carbon::parse($request->get('send_at')) : null;
         $message = $applicationService->rejectWithEmail(
             $application,
-            (int) $templateId,
+            (int)$templateId,
             $subjectOverride,
             $bodyOverride,
             $sendAt

@@ -35,7 +35,7 @@ class InterviewListScreen extends Screen
      */
     public function permission(): ?iterable
     {
-        return ['platform.interviews','platform.my_interviews'];
+        return ['platform.interviews', 'platform.my_interviews'];
     }
 
     /**
@@ -55,18 +55,21 @@ class InterviewListScreen extends Screen
             ->filters(InterviewFiltersLayout::class)
             ->defaultSort('id', 'desc');
 
-        // If user have no wide access, restrict wide view
-        if (!$this->hasWideAccess()) {
-            $query->where('interviewer_id', auth()->id());
+        if (!auth()->user()->hasAdminPrivileges()) {
+            // If user have no wide access, restrict wide view
+            if (!$this->hasWideAccess()) {
+                $query->where('interviewer_id', auth()->id());
+            }
+
+            // Restrict to interviews for accessible jobs
+            $roleIds = auth()->user()->roles()->pluck('id')->toArray();
+            $query->where(function ($q) use ($roleIds) {
+                $q->WhereHas('application.jobListing.roles', function ($q2) use ($roleIds) {
+                    $q2->whereIn('roles.id', $roleIds);
+                });
+            });
         }
 
-        // Restrict to interviews for accessible jobs
-        $roleIds = auth()->user()->roles()->pluck('id')->toArray();
-        $query->where(function ($q) use ($roleIds) {
-              $q->WhereHas('application.jobListing.roles', function ($q2) use ($roleIds) {
-                  $q2->whereIn('roles.id', $roleIds);
-              });
-        });
 
         $interviews = $query->paginate();
 

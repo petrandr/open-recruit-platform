@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Orchid\Screens\Interview;
 
 use App\Models\Interview;
+use Illuminate\Http\Request;
 use Orchid\Screen\Screen;
 use Orchid\Screen\Sight;
 use Orchid\Support\Facades\Layout;
@@ -26,22 +27,44 @@ class InterviewViewScreen extends Screen
      */
     public function query(Interview $interview): iterable
     {
+        $interview->load(['application.candidate', 'application.jobListing', 'interviewer']);
+
+        return [
+            'interview' => $interview,
+        ];
+    }
+
+    public function checkAccess(Request $request): bool
+    {
+        if (!parent::checkAccess($request)) {
+            return false;
+        }
+
+        if (auth()->user()->hasAdminPrivileges()) {
+            return true;
+        }
+
+        $interviewParam = $request->route('interview');
+        $interview = $interviewParam instanceof Interview ? $interviewParam : Interview::find($interviewParam);
+
+        if (!$interview) {
+            return false;
+        }
+
         if (!auth()->user()->hasAccess('platform.interviews')) {
             if (!$interview->interviewer || $interview->interviewer->id !== auth()->id()) {
                 abort(403);
             }
         }
-        $interview->load(['application.candidate', 'application.jobListing', 'interviewer']);
+
         // Access control: only allow if job unrestricted or user has matching role
         $userRoleIds = auth()->user()->roles()->pluck('id')->toArray();
-        $jobRoleIds  = $interview->application->jobListing->roles->pluck('id')->toArray();
+        $jobRoleIds = $interview->application->jobListing->roles->pluck('id')->toArray();
         if (empty(array_intersect($jobRoleIds, $userRoleIds))) {
-            abort(403);
+            return false;
         }
 
-        return [
-            'interview' => $interview,
-        ];
+        return true;
     }
 
     /**
@@ -65,7 +88,7 @@ class InterviewViewScreen extends Screen
      */
     public function permission(): ?iterable
     {
-        return ['platform.interviews','platform.my_interviews'];
+        return ['platform.interviews', 'platform.my_interviews'];
     }
 
     /**
@@ -91,10 +114,10 @@ class InterviewViewScreen extends Screen
     {
         return [
             Layout::legend('interview', [
-                Sight::make('id', __('Interview #'))->render(fn() => '#'.$this->interview->id),
+                Sight::make('id', __('Interview #'))->render(fn() => '#' . $this->interview->id),
                 Sight::make('application', __('Application'))->render(function () {
                     $app = $this->interview->application;
-                    $label = '#'.$app->id.' - '.$app->candidate->first_name.' '.$app->candidate->last_name;
+                    $label = '#' . $app->id . ' - ' . $app->candidate->first_name . ' ' . $app->candidate->last_name;
 
                     return Link::make($label)
                         ->route('platform.applications.view', $app->id);

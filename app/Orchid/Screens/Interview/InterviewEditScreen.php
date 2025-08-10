@@ -51,6 +51,10 @@ class InterviewEditScreen extends Screen
             return false;
         }
 
+        if (auth()->user()->hasAdminPrivileges()) {
+            return true;
+        }
+
         $interviewParam = $request->route('interview');
         $interview = $interviewParam instanceof Interview ? $interviewParam : Interview::find($interviewParam);
 

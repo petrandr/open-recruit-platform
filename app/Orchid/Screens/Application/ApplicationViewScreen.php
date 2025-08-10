@@ -69,14 +69,7 @@ class ApplicationViewScreen extends Screen
             'comments.user',
             'statusLogs.user',
         ]);
-        // Access control: allow if user has a role for this job OR the application was shared with them
-        $user = Auth::user();
-        $userRoleIds = $user->roles()->pluck('id')->toArray();
-        $jobRoleIds  = $application->jobListing->roles->pluck('id')->toArray();
-        $shared = $application->sharedWith->contains('id', $user->id);
-        if (empty(array_intersect($jobRoleIds, $userRoleIds)) && ! $shared) {
-            abort(403);
-        }
+
         // Fetch other applications submitted by this candidate (exclude current)
         $otherApplications = $application->candidate
             ->applications()
@@ -97,6 +90,35 @@ class ApplicationViewScreen extends Screen
             'interviews'           => $interviews,
             'pendingNotifications' => $pendingNotifications,
         ];
+    }
+
+    public function checkAccess(Request $request): bool
+    {
+        if (!parent::checkAccess($request)) {
+            return false;
+        }
+
+        if (auth()->user()->hasAdminPrivileges()) {
+            return true;
+        }
+
+        $applicationParam = $request->route('application');
+        $application = $applicationParam instanceof JobApplication ? $applicationParam : JobApplication::find($applicationParam);
+
+        if (!$application) {
+            return false;
+        }
+
+        // Access control: allow if user has a role for this job OR the application was shared with them
+        $user = Auth::user();
+        $userRoleIds = $user->roles()->pluck('id')->toArray();
+        $jobRoleIds  = $application->jobListing->roles->pluck('id')->toArray();
+        $shared = $application->sharedWith->contains('id', $user->id);
+        if (empty(array_intersect($jobRoleIds, $userRoleIds)) && ! $shared) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
