@@ -24,6 +24,7 @@ trait Authenticated
 
     protected function updateLastLogin(User $user): void
     {
+        $user->timestamps = false;
         $user->last_login_at = now();
         $user->save();
     }

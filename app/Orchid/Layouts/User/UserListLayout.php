@@ -63,9 +63,16 @@ class UserListLayout extends Table
                 ->sort(),
 
             TD::make('last_login_at', __('Last Login'))
-                ->usingComponent(DateTimeSplit::class)
                 ->align(TD::ALIGN_RIGHT)
-                ->sort(),
+                ->sort()
+                ->render(function (User $user) {
+                    // Show empty (or placeholder) if user has never logged in
+                    if ($user->last_login_at === null) {
+                        return '-';
+                    }
+                    // Render date/time split component when there is a value
+                    return (new DateTimeSplit($user->last_login_at))->render();
+                }),
 
             TD::make(__('Actions'))
                 ->align(TD::ALIGN_CENTER)
