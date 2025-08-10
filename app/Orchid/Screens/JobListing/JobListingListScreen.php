@@ -28,7 +28,7 @@ class JobListingListScreen extends Screen
      */
     public function changeJobStatus(Request $request): void
     {
-        $job    = JobListing::findOrFail($request->get('id'));
+        $job = JobListing::findOrFail($request->get('id'));
         $status = $request->get('status');
         $job->update(['status' => $status]);
         Toast::info(__('Job status changed to :status', ['status' => ucfirst($status)]));
@@ -49,16 +49,17 @@ class JobListingListScreen extends Screen
      */
     public function query(): iterable
     {
-        $query = JobListing::withCount('applications')
-            ->defaultSort('id', 'desc');
+        $query = JobListing::withCount('applications')->defaultSort('id', 'desc');
 
-        // Restrict to interviews for accessible jobs
-        $roleIds = auth()->user()->roles()->pluck('id')->toArray();
-        $query->where(function ($q) use ($roleIds) {
-            $q->WhereHas('roles', function ($q2) use ($roleIds) {
-                $q2->whereIn('roles.id', $roleIds);
+        if (!auth()->user()->hasAdminPrivileges()) {
+            $roleIds = auth()->user()->roles()->pluck('id')->toArray();
+            $query->where(function ($q) use ($roleIds) {
+                $q->WhereHas('roles', function ($q2) use ($roleIds) {
+                    $q2->whereIn('roles.id', $roleIds);
+                });
             });
-        });
+        }
+
         return ['jobs' => $query->paginate()];
     }
 

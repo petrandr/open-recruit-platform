@@ -88,8 +88,8 @@ class JobListingGeneralLayout extends Rows
                 ->title(__('Allowed Roles'))
                 ->multiple()
                 ->options(
-                    // Exclude admin role from selectable options
-                    Role::where('slug', '<>', 'admin')
+                    // Exclude admin roles from selectable options
+                    Role::whereNotIn('role_type', config('platform.admin_roles'))
                         ->pluck('name', 'id')
                         ->toArray()
                 )

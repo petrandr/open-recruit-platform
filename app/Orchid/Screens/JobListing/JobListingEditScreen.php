@@ -48,18 +48,6 @@ class JobListingEditScreen extends Screen
         if (empty($job)) {
             $job = new JobListing();
         } else {
-            // Restrict to interviews for accessible jobs
-            $roleIds = auth()->user()->roles()->pluck('id')->toArray();
-            $accessibleJob = JobListing::where('id', $job->id)
-                ->whereHas('roles', function ($q) use ($roleIds) {
-                    $q->whereIn('roles.id', $roleIds);
-                })
-                ->first();
-
-            if (!$accessibleJob) {
-                // Throw 403 Access Denied
-                throw new HttpException(403, 'Access Denied');
-            }
             // Eager-load relations and application count for editing
             $job->load(['screeningQuestions', 'roles']);
             $job->loadCount('applications');
@@ -70,6 +58,41 @@ class JobListingEditScreen extends Screen
         return [
             'job' => $job,
         ];
+    }
+
+    /**
+     * Check Access
+     * @param Request $request
+     * @return bool
+     */
+    public function checkAccess(Request $request): bool
+    {
+        if (!parent::checkAccess($request)) {
+            return false;
+        }
+
+        if (auth()->user()->hasAdminPrivileges()) {
+            return true;
+        }
+
+        $jobParam = $request->route('job');
+        if ($jobParam) {
+            $job = $jobParam instanceof JobListing ? $jobParam : JobListing::find($jobParam);
+
+            // Restrict to interviews for accessible jobs
+            $roleIds = auth()->user()->roles()->pluck('id')->toArray();
+            $accessibleJob = JobListing::where('id', $job->id)
+                ->whereHas('roles', function ($q) use ($roleIds) {
+                    $q->whereIn('roles.id', $roleIds);
+                })
+                ->first();
+
+            if (!$accessibleJob) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -230,16 +253,7 @@ class JobListingEditScreen extends Screen
         $job->fill($data)->save();
         // Sync allowed roles (automatically include admin role if it exists)
         $selectedRoles = $request->input('job.roles', []);
-        // Ensure admin role always assigned
-        $adminRole = Role::where('slug', 'admin')->first();
-        if ($adminRole) {
-            $selectedRoles = array_unique(
-                array_merge(
-                    is_array($selectedRoles) ? $selectedRoles : [],
-                    [$adminRole->id]
-                )
-            );
-        }
+
         $job->roles()->sync($selectedRoles);
 
         // Handle screening questions

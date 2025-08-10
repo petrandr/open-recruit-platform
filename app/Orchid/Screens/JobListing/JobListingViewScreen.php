@@ -33,6 +33,31 @@ class JobListingViewScreen extends Screen
      */
     public function query(JobListing $job): iterable
     {
+        // Load related counts and questions
+        $job->loadCount('applications');
+        $job->load(['screeningQuestions', 'industry']);
+        return [
+            'job' => $job,
+        ];
+    }
+
+    public function checkAccess(Request $request): bool
+    {
+        if (!parent::checkAccess($request)) {
+            return false;
+        }
+
+        if (auth()->user()->hasAdminPrivileges()) {
+            return true;
+        }
+
+        $jobParam = $request->route('job');
+        $job = $jobParam instanceof JobListing ? $jobParam : JobListing::find($jobParam);
+
+        if (!$job) {
+            return false;
+        }
+
         // Restrict to interviews for accessible jobs
         $roleIds = auth()->user()->roles()->pluck('id')->toArray();
         $accessibleJob = JobListing::where('id', $job->id)
@@ -42,15 +67,10 @@ class JobListingViewScreen extends Screen
             ->first();
 
         if (!$accessibleJob) {
-            // Throw 403 Access Denied
-            throw new HttpException(403, 'Access Denied');
+            return false;
         }
-        // Load related counts and questions
-        $job->loadCount('applications');
-        $job->load(['screeningQuestions', 'industry']);
-        return [
-            'job' => $job,
-        ];
+
+        return true;
     }
 
     /**
@@ -96,7 +116,7 @@ class JobListingViewScreen extends Screen
             Button::make(__('Activate'))
                 ->icon('bs.check2-circle')
                 ->method('changeJobStatus', [
-                    'id'     => $this->job->id,
+                    'id' => $this->job->id,
                     'status' => 'active',
                 ])
                 ->confirm(__('Are you sure you want to activate this job position?'))
@@ -105,7 +125,7 @@ class JobListingViewScreen extends Screen
             Button::make(__('Set Inactive'))
                 ->icon('bs.pause-circle')
                 ->method('changeJobStatus', [
-                    'id'     => $this->job->id,
+                    'id' => $this->job->id,
                     'status' => 'inactive',
                 ])
                 ->confirm(__('Are you sure you want to set this job position to inactive?'))
@@ -114,7 +134,7 @@ class JobListingViewScreen extends Screen
             Button::make(__('Disable'))
                 ->icon('bs.x-circle')
                 ->method('changeJobStatus', [
-                    'id'     => $this->job->id,
+                    'id' => $this->job->id,
                     'status' => 'disable',
                 ])
                 ->confirm(__('Are you sure you want to disable this job position?'))
@@ -142,27 +162,24 @@ class JobListingViewScreen extends Screen
                 ->render(fn(JobListing $job) => $job->headline),
             Sight::make('job_type', __('Job Type')),
             Sight::make('workplace', __('Workplace'))
-                ->render(fn(JobListing $job) =>
-                    is_array($job->workplace)
-                        ? implode(', ', $job->workplace)
-                        : $job->workplace
+                ->render(fn(JobListing $job) => is_array($job->workplace)
+                    ? implode(', ', $job->workplace)
+                    : $job->workplace
                 ),
             Sight::make('location', __('Location')),
             Sight::make('status', __('Status'))
-                ->render(fn(JobListing $job) =>
-                    '<span class="badge bg-' . match ($job->status) {
-                        'active'   => 'success',
-                        'draft'    => 'secondary',
+                ->render(fn(JobListing $job) => '<span class="badge bg-' . match ($job->status) {
+                        'active' => 'success',
+                        'draft' => 'secondary',
                         'inactive' => 'warning',
                         'disabled' => 'danger',
-                        default    => 'secondary',
+                        default => 'secondary',
                     } . '">' . ucfirst($job->status) . '</span>'
                 ),
             Sight::make('date_opened', __('Date Opened'))
-                ->render(fn(JobListing $job) =>
-                    $job->date_opened
-                        ? $job->date_opened->format('Y-m-d')
-                        : '-'
+                ->render(fn(JobListing $job) => $job->date_opened
+                    ? $job->date_opened->format('Y-m-d')
+                    : '-'
                 ),
             Sight::make('applications_count', __('Applications'))
                 ->render(fn(JobListing $job) => $job->applications_count),
@@ -184,10 +201,9 @@ class JobListingViewScreen extends Screen
         $screening = [];
         foreach ($this->job->screeningQuestions as $question) {
             $screening[] = Sight::make('question_' . $question->id, $question->question_text)
-                ->render(fn() =>
-                    $question->question_type === 'boolean'
-                        ? ($question->min_value ? __('Yes') : __('No'))
-                        : ($question->min_value !== null ? $question->min_value : '-')
+                ->render(fn() => $question->question_type === 'boolean'
+                    ? ($question->min_value ? __('Yes') : __('No'))
+                    : ($question->min_value !== null ? $question->min_value : '-')
                 );
         }
 
@@ -197,6 +213,7 @@ class JobListingViewScreen extends Screen
             Layout::legend('job', $screening)->title(__('Screening Questions'))
         ];
     }
+
     /**
      * Change the status of this job listing.
      *
@@ -204,7 +221,7 @@ class JobListingViewScreen extends Screen
      */
     public function changeJobStatus(Request $request): void
     {
-        $job    = JobListing::findOrFail($request->get('id'));
+        $job = JobListing::findOrFail($request->get('id'));
         $status = $request->get('status');
         $job->update(['status' => $status]);
         Toast::info(__('Job status changed to :status', ['status' => ucfirst($status)]));

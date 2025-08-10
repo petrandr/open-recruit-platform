@@ -145,7 +145,7 @@ class User extends Authenticatable
     {
         return $this->getHighestRoleTypeRank() >= $target->getHighestRoleTypeRank();
     }
-    
+
     /**
      * Determine if this user can modify the given role
      * based on role type hierarchy.
@@ -157,4 +157,17 @@ class User extends Authenticatable
 
         return $this->getHighestRoleTypeRank() >= $targetRank;
     }
+
+    public function hasAdminPrivileges(): bool
+    {
+        // Get the role slugs for this user
+        $userRoles = $this->roles->pluck('role_type')->toArray();
+
+        // Compare against config-defined admin roles
+        return !empty(array_intersect(
+            config('platform.admin_roles'),
+            $userRoles
+        ));
+    }
+
 }

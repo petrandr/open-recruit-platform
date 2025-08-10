@@ -420,4 +420,18 @@ return [
     */
 
     'logo' => env('PLATFORM_LOGO_PATH', '/images/logo.png'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Admin Roles
+    |--------------------------------------------------------------------------
+    |
+    | This value defines the admin roles of the platform
+    |
+    */
+
+    'admin_roles' => [
+        'admin',
+        'superadmin'
+    ]
 ];
