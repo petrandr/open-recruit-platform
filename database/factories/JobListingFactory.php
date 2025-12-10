@@ -33,6 +33,7 @@ class JobListingFactory extends Factory
             'workplace'         => [fake()->randomElement(['On-Site', 'Hybrid', 'Remote'])],
             'status'            => fake()->randomElement(['active', 'inactive', 'draft', 'disable']),
             'date_opened'       => fake()->date(),
+            'valid_until'       => fake()->dateTimeBetween('now', '+6 months'),
             'responsibilities'  => fake()->paragraph(),
             'requirements'      => fake()->paragraph(),
             'bonus'             => fake()->sentence(),

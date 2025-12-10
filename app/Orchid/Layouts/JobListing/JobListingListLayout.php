@@ -70,6 +70,11 @@ class JobListingListLayout extends Table
                 ->usingComponent(DateTimeSplit::class)
                 ->align(TD::ALIGN_RIGHT),
 
+            TD::make('valid_until', __('Valid Until'))
+                ->sort()
+                ->usingComponent(DateTimeSplit::class)
+                ->align(TD::ALIGN_RIGHT),
+
             TD::make(__('Actions'))
                 ->align(TD::ALIGN_CENTER)
                 ->width('100px')

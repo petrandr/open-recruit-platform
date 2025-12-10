@@ -63,6 +63,12 @@ class JobListingGeneralLayout extends Rows
                 ->title(__('Date Opened'))
                 ->enableTime(false),
 
+            DateTimer::make('job.valid_until')
+                ->title(__('Valid Until'))
+                ->required()
+                ->enableTime(false)
+                ->help(__('The date until which this job listing is valid')),
+
             Select::make('job.status')
                 ->options([
                     'draft'    => __('Draft'),

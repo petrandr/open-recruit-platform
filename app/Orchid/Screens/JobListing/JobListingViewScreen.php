@@ -181,6 +181,11 @@ class JobListingViewScreen extends Screen
                     ? $job->date_opened->format('Y-m-d')
                     : '-'
                 ),
+            Sight::make('valid_until', __('Valid Until'))
+                ->render(fn(JobListing $job) => $job->valid_until
+                    ? $job->valid_until->format('Y-m-d')
+                    : '-'
+                ),
             Sight::make('applications_count', __('Applications'))
                 ->render(fn(JobListing $job) => $job->applications_count),
         ];

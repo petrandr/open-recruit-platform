@@ -24,3 +24,4 @@ yarn-error.log
 Dockerfile
 .docker/
 docker-compose.yml
+cloudformation.yaml

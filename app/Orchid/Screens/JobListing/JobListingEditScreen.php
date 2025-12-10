@@ -224,6 +224,7 @@ class JobListingEditScreen extends Screen
             'job.location'          => 'required|string|max:255',
             'job.industry_id'       => ['required', 'integer', 'exists:industries,id'],
             'job.date_opened'       => 'nullable|date',
+            'job.valid_until'       => 'required|date|after:today',
             'job.responsibilities'  => 'required|string',
             'job.requirements'      => 'required|string',
             'job.bonus'             => 'nullable|string',

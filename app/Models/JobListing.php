@@ -34,6 +34,7 @@ class JobListing extends Model
         'bonus',
         'benefits',
         'date_opened',
+        'valid_until',
         'job_type',
         'workplace',
         'status',
@@ -52,6 +53,7 @@ class JobListing extends Model
         'workplace'     => 'array',
         'who_to_notify' => 'array',
         'date_opened'   => 'date',
+        'valid_until'   => 'date',
     ];
 
     /**
@@ -64,6 +66,7 @@ class JobListing extends Model
         'title'       => InsensitiveLike::class,
         'status'      => Where::class,
         'date_opened' => WhereDateStartEnd::class,
+        'valid_until' => WhereDateStartEnd::class,
         'created_at'  => WhereDateStartEnd::class,
         'updated_at'  => WhereDateStartEnd::class,
     ];
@@ -78,6 +81,7 @@ class JobListing extends Model
         'title',
         'status',
         'date_opened',
+        'valid_until',
         'created_at',
         'updated_at',
     ];
@@ -128,5 +132,47 @@ class JobListing extends Model
             return sprintf("%s (%s)", $this->title, $status);
         }
         return $this->title;
+    }
+
+    /**
+     * Check if the job listing is still valid (not expired).
+     *
+     * @return bool
+     */
+    public function isValid(): bool
+    {
+        return $this->valid_until && $this->valid_until->isFuture();
+    }
+
+    /**
+     * Check if the job listing has expired.
+     *
+     * @return bool
+     */
+    public function isExpired(): bool
+    {
+        return $this->valid_until && $this->valid_until->isPast();
+    }
+
+    /**
+     * Scope to get only valid (non-expired) job listings.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeValid($query)
+    {
+        return $query->where('valid_until', '>', now());
+    }
+
+    /**
+     * Scope to get expired job listings.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeExpired($query)
+    {
+        return $query->where('valid_until', '<=', now());
     }
 }

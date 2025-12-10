@@ -10,11 +10,15 @@ use Illuminate\Http\JsonResponse;
 class JobListingController extends Controller
 {
     /**
-     * Display a listing of active jobs.
+     * Display a listing of active and non-expired jobs.
+     * 
+     * Returns only jobs with status 'active' and valid_until date in the future.
+     * Includes the valid_until field in the response.
      */
     public function index(): JsonResponse
     {
         $jobs = JobListing::where('status', 'active')
+            ->valid() // Only include non-expired jobs
             ->with('industry')
             ->select(
                 'id',
@@ -23,6 +27,7 @@ class JobListingController extends Controller
                 'short_description',
                 'status',
                 'date_opened',
+                'valid_until',
                 'job_type',
                 'workplace',
                 'location',
@@ -42,6 +47,7 @@ class JobListingController extends Controller
                 'short_description' => $job->short_description,
                 'status'            => $job->status,
                 'date_opened'       => $job->date_opened,
+                'valid_until'       => $job->valid_until,
                 'job_type'          => $job->job_type,
                 'workplace'         => $job->workplace,
                 'location'          => $job->location,
@@ -54,7 +60,9 @@ class JobListingController extends Controller
     }
 
     /**
-     * Display the specified job if active or inactive.
+     * Display the specified job if active or inactive and not expired.
+     * 
+     * Returns 404 if the job is expired (valid_until date has passed).
      *
      * @param JobListing $job
      */
@@ -62,6 +70,11 @@ class JobListingController extends Controller
     {
         if (!in_array($job->status, ['active', 'inactive'], true)) {
             abort(404);
+        }
+
+        // Check if job is expired
+        if ($job->isExpired()) {
+            abort(404, 'Job listing has expired');
         }
 
         // Eager load related entities including industry
