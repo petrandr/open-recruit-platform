@@ -200,11 +200,12 @@ class ApplicationViewScreen extends Screen
                     ->toArray()
             );
 
-        // Share Application button (opens shareModal) - only for users with job-level role
-        $canShare = $this->application->jobListing
-            ->roles()
-            ->whereIn('roles.id', auth()->user()->roles()->pluck('id')->toArray())
-            ->exists();
+        // Share Application button (opens shareModal) - admins or users with job-level role
+        $canShare = auth()->user()->hasAdminPrivileges()
+            || $this->application->jobListing
+                ->roles()
+                ->whereIn('roles.id', auth()->user()->roles()->pluck('id')->toArray())
+                ->exists();
         $commands[] = ModalToggle::make(__('Share Application'))
             ->icon('bs.share')
             ->modal('shareModal')
@@ -220,11 +221,13 @@ class ApplicationViewScreen extends Screen
     public function shareApplication(\Illuminate\Http\Request $request): void
     {
         $application = JobApplication::findOrFail($request->get('id'));
-        // Authorization: only allow users with job-level roles to share
-        $userRoleIds = auth()->user()->roles()->pluck('id')->toArray();
-        $jobRoleIds = $application->jobListing->roles()->pluck('id')->toArray();
-        if (empty(array_intersect($userRoleIds, $jobRoleIds))) {
-            abort(403);
+        // Authorization: admins or users with job-level roles can share
+        if (!auth()->user()->hasAdminPrivileges()) {
+            $userRoleIds = auth()->user()->roles()->pluck('id')->toArray();
+            $jobRoleIds = $application->jobListing->roles()->pluck('id')->toArray();
+            if (empty(array_intersect($userRoleIds, $jobRoleIds))) {
+                abort(403);
+            }
         }
         $userIds = $request->get('share_user_ids', []);
         if (!is_array($userIds)) {
@@ -253,11 +256,13 @@ class ApplicationViewScreen extends Screen
     public function removeShare(\Illuminate\Http\Request $request): void
     {
         $application = JobApplication::findOrFail($request->get('id'));
-        // Authorization: only allow users with job-level roles to remove share
-        $userRoleIds = auth()->user()->roles()->pluck('id')->toArray();
-        $jobRoleIds = $application->jobListing->roles()->pluck('id')->toArray();
-        if (empty(array_intersect($userRoleIds, $jobRoleIds))) {
-            abort(403);
+        // Authorization: admins or users with job-level roles can remove share
+        if (!auth()->user()->hasAdminPrivileges()) {
+            $userRoleIds = auth()->user()->roles()->pluck('id')->toArray();
+            $jobRoleIds = $application->jobListing->roles()->pluck('id')->toArray();
+            if (empty(array_intersect($userRoleIds, $jobRoleIds))) {
+                abort(403);
+            }
         }
         $userId = $request->get('user_id');
         $application->sharedWith()->detach($userId);
