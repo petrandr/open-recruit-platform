@@ -47,16 +47,13 @@ class InterviewEditScreen extends Screen
 
     public function checkAccess(Request $request): bool
     {
-        if (!parent::checkAccess($request)) {
-            return false;
-        }
+        $interviewParam = $request->route('interview');
+        $interview = $interviewParam instanceof Interview ? $interviewParam : Interview::find($interviewParam);
 
+        // Allow admins unconditionally
         if (auth()->user()->hasAdminPrivileges()) {
             return true;
         }
-
-        $interviewParam = $request->route('interview');
-        $interview = $interviewParam instanceof Interview ? $interviewParam : Interview::find($interviewParam);
 
         if (!$interview) {
             Toast::warning(__('You do not have permission to access this interview.'));
@@ -65,27 +62,24 @@ class InterviewEditScreen extends Screen
             );
         }
 
-        if (!auth()->user()->hasAccess('platform.interviews')) {
-            if (!$interview->interviewer || $interview->interviewer->id !== auth()->id()) {
-                Toast::warning(__('You do not have permission to access this interview.'));
-                throw new HttpResponseException(
-                    redirect()->route('platform.interviews')
-                );
-            }
-        } else {
-            // Access control: only allow if job unrestricted or user has matching role
+        // Allow the assigned interviewer regardless of other permissions
+        if ($interview->interviewer_id && $interview->interviewer_id === auth()->id()) {
+            return true;
+        }
+
+        // For users with wide interview access, check job-level role
+        if (auth()->user()->hasAccess('platform.interviews')) {
             $userRoleIds = auth()->user()->roles()->pluck('id')->toArray();
             $jobRoleIds = $interview->application->jobListing->roles->pluck('id')->toArray();
-            if (empty(array_intersect($jobRoleIds, $userRoleIds))) {
-                Toast::warning(__('You do not have permission to access this interview.'));
-                throw new HttpResponseException(
-                    redirect()->route('platform.interviews')
-                );
+            if (!empty(array_intersect($jobRoleIds, $userRoleIds))) {
+                return true;
             }
         }
 
-
-        return true;
+        Toast::warning(__('You do not have permission to access this interview.'));
+        throw new HttpResponseException(
+            redirect()->route('platform.interviews')
+        );
     }
 
     /**
